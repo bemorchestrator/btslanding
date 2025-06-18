@@ -12,7 +12,7 @@ export default function Error(){
                 <div className="lg:flex justify-center">
                     <div className="lg:w-1/2">
                         <Link to="/">
-                            <span className="text-[22px] font-bold text-slate-900 dark:text-white">Better Teaching Solutions</span>
+                            <img src="/btsolutions.png" className="h-16 py-2" alt="Better Teaching Solutions" />
                         </Link>
                         <div className="mt-8">
                             <img src={errorImg} className="max-w-md mx-auto" alt=""/>

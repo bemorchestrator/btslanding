@@ -4,6 +4,19 @@ import { Link } from "react-router-dom";
 export default function Navbar(){
     const [toggleMenu, setToggleMenu] = useState(false)
     const [scroll, setScroll] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Check if we're on mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 991);
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const activateMenu = useCallback(() => {
         var menuItems = document.getElementsByClassName("sub-menu-item");
@@ -108,10 +121,10 @@ if (document.getElementById("navigation")) {
 
     return(
         <>
-        <nav id="topnav" className={`${scroll ? "nav-sticky" : "" } defaultscroll is-sticky`}>
+        <nav id="topnav" className={`${scroll && !isMobile ? "nav-sticky" : ""} defaultscroll is-sticky${isMobile ? ' mobile-black-nav' : ''}`}>
             <div className="container">
                 <Link className="logo" to="/">
-                    <span className="text-[22px] font-bold text-slate-900 dark:text-white">Better Teaching Solutions</span>
+                    <img src="/btsolutions.png" className="h-16 py-2" alt="Better Teaching Solutions" />
                 </Link>
                
                 <div className="menu-extras">
@@ -125,12 +138,28 @@ if (document.getElementById("navigation")) {
                         </Link>
                     </div>
                 </div>
+
+                {/* Mobile Login/Signup buttons beside hamburger */}
+                <ul className="mobile-auth-buttons list-none mb-0 md:hidden flex items-center gap-3 mr-4">
+                    <li className="inline mb-0">
+                        <a href="https://app.betterteachingsolutions.com" target="_blank" rel="noopener noreferrer" className="py-[6px] px-3 inline-flex items-center justify-center tracking-wider align-middle duration-500 text-xs text-center rounded bg-amber-400/5 hover:bg-amber-400 border border-amber-400/10 hover:border-amber-400 text-amber-400 hover:text-white font-semibold">
+                            Login
+                        </a>
+                    </li>
+                    <li className="inline mb-0">
+                        <a href="https://app.betterteachingsolutions.com/register" target="_blank" rel="noopener noreferrer" className="py-[6px] px-3 inline-flex items-center justify-center tracking-wider align-middle duration-500 text-xs text-center rounded bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white font-semibold">
+                            Signup
+                        </a>
+                    </li>
+                </ul>
+
+                {/* Desktop Login/Signup buttons */}
                 <ul className="buy-button list-none mb-0">
                     <li className="inline mb-0">
-                        <Link to="/login">
+                        <a href="https://app.betterteachingsolutions.com" target="_blank" rel="noopener noreferrer">
                             <span className="py-[6px] px-4 md:inline hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400/5 hover:bg-amber-400 border border-amber-400/10 hover:border-amber-400 text-amber-400 hover:text-white font-semibold">Login</span>
                             <span className="py-[6px] px-4 hidden md:hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white font-semibold">Login</span>
-                        </Link>
+                        </a>
                     </li>
             
                     <li className="md:inline hidden ps-1 mb-0 ">

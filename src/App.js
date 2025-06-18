@@ -10,9 +10,7 @@ import Pricing from './pages/pricing';
 import Services from './pages/services';
 import BlogDetails from './pages/blog-detail';
 import Helpcenter from './pages/helpcenter';
-import Login from './pages/login';
-import Signup from './pages/signup';
-import ResetPassword from './pages/reset-password';
+
 import Terms from './pages/terms';
 import Privacy from './pages/privacy';
 import Error from './pages/error';
@@ -31,9 +29,6 @@ function App() {
       <Route path='/blog-detail' element={<BlogDetails/>} />
       <Route path='/blog-detail/:id' element={<BlogDetails/>} />
       <Route path='/helpcenter' element={<Helpcenter/>} />
-      <Route path='/login' element={<Login/>} />
-      <Route path='/signup' element={<Signup/>} />
-      <Route path='/reset-password' element={<ResetPassword/>} />
       <Route path='/terms' element={<Terms/>} />
       <Route path='/privacy' element={<Privacy/>} />
       <Route path='/error' element={<Error/>} />

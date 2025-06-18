@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import logoDark from '../assets/images/logo-dark.png';
-import logoLight from '../assets/images/logo-light.png';
 
 interface NavbarProps {
   className?: string;
@@ -124,8 +122,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
     <nav id="topnav" className={`${scroll ? "nav-sticky" : ""} defaultscroll is-sticky ${className || ''}`}>
       <div className="container">
         <Link className="logo" to="/">
-          <img src={logoDark} className="h-6 inline-block dark:hidden" alt="Logo Dark" />
-          <img src={logoLight} className="h-6 hidden dark:inline-block" alt="Logo Light" />
+          <img src="/btsolutions.png" className="h-16 py-2" alt="Better Teaching Solutions" />
         </Link>
         
         <div className="menu-extras">
@@ -146,14 +143,14 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
 
         <ul className="buy-button list-none mb-0">
           <li className="inline mb-0">
-            <Link to="/login">
+            <a href="https://app.betterteachingsolutions.com" target="_blank" rel="noopener noreferrer">
               <span className="py-[6px] px-4 md:inline hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400/5 hover:bg-amber-400 border border-amber-400/10 hover:border-amber-400 text-amber-400 hover:text-white font-semibold">
                 Login
               </span>
               <span className="py-[6px] px-4 hidden md:hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white font-semibold">
                 Login
               </span>
-            </Link>
+            </a>
           </li>
       
           <li className="md:inline hidden ps-1 mb-0">
@@ -207,15 +204,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
                 
                 <li><Link to="/helpcenter" className="sub-menu-item">Helpcenter</Link></li>
 
-                <li className="has-submenu parent-menu-item">
-                  <Link to="#">Auth Pages</Link>
-                  <span className="submenu-arrow"></span>
-                  <ul className="submenu">
-                    <li><Link to="/login" className="sub-menu-item">Login</Link></li>
-                    <li><Link to="/signup" className="sub-menu-item">Signup</Link></li>
-                    <li><Link to="/reset-password" className="sub-menu-item">Forgot Password</Link></li>
-                  </ul>
-                </li>
+
 
                 <li className="has-submenu parent-menu-item">
                   <Link to="#">Utility</Link>

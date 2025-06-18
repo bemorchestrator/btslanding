@@ -111,7 +111,7 @@ if (document.getElementById("navigation")) {
         <nav id="topnav" className={`${scroll ? "nav-sticky" : "" } defaultscroll is-sticky`}>
             <div className="container">
                 <Link className="logo" to="/">
-                    <span className="text-[22px] font-bold text-slate-900 dark:text-white">Better Teaching Solutions</span>
+                    <img src="/btsolutions.png" className="h-16 py-2" alt="Better Teaching Solutions" />
                 </Link>
                
                 <div className="menu-extras">
@@ -127,10 +127,10 @@ if (document.getElementById("navigation")) {
                 </div>
                 <ul className="buy-button list-none mb-0">
                     <li className="inline mb-0">
-                        <Link to="/login">
+                        <a href="https://app.betterteachingsolutions.com" target="_blank" rel="noopener noreferrer">
                             <span className="py-[6px] px-4 md:inline hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400/5 hover:bg-amber-400 border border-amber-400/10 hover:border-amber-400 text-amber-400 hover:text-white font-semibold">Login</span>
                             <span className="py-[6px] px-4 hidden md:hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white font-semibold">Login</span>
-                        </Link>
+                        </a>
                     </li>
             
                     <li className="md:inline hidden ps-1 mb-0 ">
