@@ -18,7 +18,7 @@ export default function Footer(){
                 <div className="container relative">
                     <div className="grid grid-cols-1 text-center">
                         <div className="">
-                            <h4 className="font-bold lg:leading-normal leading-normal text-4xl lg:text-5xl text-white tracking-normal mb-4">Start Your Free Trial.</h4>
+                            <h4 className="font-bold lg:leading-normal leading-normal text-4xl lg:text-5xl text-white tracking-normal mb-4">Start A Free Account Now.</h4>
                             <p className="text-white/70 text-lg max-w-xl mx-auto">Artificial intelligence makes it fast easy to create content for your blog, social media, website, and more!</p>
 
                             <div className="mt-6">
