@@ -18,7 +18,7 @@ export default function AboutThree(){
                     <div className="relative overflow-hidden after:content-[''] after:absolute after:inset-0 after:mx-auto after:w-72 after:h-72 after:bg-gradient-to-tl after:to-amber-400 after:from-fuchsia-600 after:blur-[80px] after:rounded-full p-6 bg-white dark:bg-slate-900 rounded-md shadow dark:shadow-slate-800">
                         <div className="relative overflow-hidden rounded-lg shadow-md dark:shadow-gray-800 z-1">
                             <div className="relative">
-                                <img src="/Screenshot_3.png" alt="Teaching tools screenshot" className="w-full rounded-lg" />
+                                <img src="/screenshot_4.png" alt="Teaching tools screenshot" className="w-3/4 max-w-md rounded-lg mx-auto" />
                             </div>
     
                             {/* Play button overlay removed */}
