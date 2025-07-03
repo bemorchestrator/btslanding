@@ -5,9 +5,8 @@ import {FiCheckCircle,AiOutlineClose} from '../assets/icons/vander'
 
 export default function Pricing(){
     const [businessPrice] = useState(200) 
-    const [professionalPrice, setProfessionalPrice] = useState(1500)
+    const [professionalPrice] = useState(1500)
 
-    let professionalUpdate = (parseFloat(professionalPrice * 0.025).toFixed(1))
     return(
         <>
             <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 mt-6 gap-6">
@@ -31,11 +30,13 @@ export default function Pricing(){
                         <ul className="list-none text-slate-400">
                             <li className="font-semibold text-slate-900 dark:text-white text-sm uppercase">Features:</li>
                             
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/><span className="text-slate-900 dark:text-white me-1 font-semibold">10 lessons</span> per month</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">10 Quizzes</span> per month</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">1 Classroom</span> to manage</li>
-                            <li className="flex items-center mt-2 text-slate-400"><AiOutlineClose className="h-[18px] w-[18px] me-2"/> Advanced customization</li>
-                            <li className="flex items-center mt-2 text-slate-400"><AiOutlineClose className="h-[18px] w-[18px] me-2"/> Classroom analytics</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/><span className="text-slate-900 dark:text-white me-1 font-semibold">40 Students</span>, 1 Classroom</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">5 DLL AI Generations</span> per day</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Automated SF1 to SF10</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Bulk Upload</span> (10 students)</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Basic Analytics</span></li>
+                            <li className="flex items-center mt-2 text-slate-400"><AiOutlineClose className="h-[18px] w-[18px] me-2"/> Advanced AI Features</li>
+                            <li className="flex items-center mt-2 text-slate-400"><AiOutlineClose className="h-[18px] w-[18px] me-2"/> Priority Support</li>
                         </ul>
                     </div>
                 </div>
@@ -58,18 +59,22 @@ export default function Pricing(){
                             <div className="h-14"></div>
                         </div>
                         
-                        <Link to="" className="py-2 px-5 inline-block font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-amber-400 hover:bg-amber-500 border-amber-400 hover:border-amber-500 text-white rounded">Coming Soon</Link>
+                        <Link to="https://app.betterteachingsolutions.com/pricing" className="py-2 px-5 inline-block font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-amber-400 hover:bg-amber-500 border-amber-400 hover:border-amber-500 text-white rounded">Select Plan</Link>
                     </div>
 
                     <div className="p-6 bg-gray-50 dark:bg-slate-800">
                         <ul className="list-none text-slate-400">
                             <li className="font-semibold text-slate-900 dark:text-white text-sm uppercase">Features:</li>
                             
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">30 Lesson Plans</span> per month</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">30 Quizzes</span> per month</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">1 Classroom</span> to manage</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white mx-1 font-semibold">Anecdotal Analysis</span>AI Generated</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Advanced Classroom</span> Analytics</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">150 Students</span>, 3 Classrooms</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">20 DLL AI Generations</span> per day</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Automated SF1 to SF10</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Bulk Upload</span> (40 students)</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Advanced Analytics</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Worksheet Generator</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">PowerPoint Maker</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Anecdotal Analysis</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Priority Support</span></li>
                         </ul>
                     </div>
                 </div>
@@ -89,32 +94,181 @@ export default function Pricing(){
                                 </span>
                             </div>
 
-                            <div className="relative mt-4">
-                                <label htmlFor="professional-price" className="form-label"></label>
-                                <input id="professional-price" type="range" defaultValue="1500" min={1500} max={15000} onChange={(e) => setProfessionalPrice(e.target.value)} className="w-full h-1 bg-gray-50 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"/>
-                                <span className="font-semibold text-lg absolute end-0 -top-5">
-                                    <input type="hidden" id="professional-update" className="form-control"/>
-                                    <span className=""></span>
-                                    <p className="inline-block" id="pro-update">{professionalUpdate}</p>
-                                    <span>X</span>
-                                </span>
-                            </div>
+                            <div className="h-14"></div>
                         </div>
-                        <div className="mt-4">
-                            <Link to="" className="py-2 px-5 inline-block font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-amber-400 hover:bg-amber-500 border-amber-400 hover:border-amber-500 text-white rounded">Coming Soon</Link>
-                        </div>
+                        
+                        <Link to="https://app.betterteachingsolutions.com/pricing" className="py-2 px-5 inline-block font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-amber-400 hover:bg-amber-500 border-amber-400 hover:border-amber-500 text-white rounded">Select Plan</Link>
                     </div>
 
                     <div className="p-6 bg-gray-50 dark:bg-slate-800">
                         <ul className="list-none text-slate-400">
                             <li className="font-semibold text-slate-900 dark:text-white text-sm uppercase">Features:</li>
                             
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">10</span> Teacher Accounts to Manage</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Principal</span> Admin Dashboard</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Analytics</span> to Manage Entire School</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Higher</span> AI Lesson Plan Generations</li>
-                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Higher</span> AI Assessment Generations</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">500 Students</span>, 12 Classrooms</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">50 DLL AI Generations</span> per day</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Automated SF1 to SF10</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Bulk Upload</span> (100 students)</li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Advanced Analytics</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">All Premium Features</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Teacher Community Access</span></li>
+                            <li className="flex items-center mt-2"><FiCheckCircle className="text-green-600 h-[18px] w-[18px] me-2"/> <span className="text-slate-900 dark:text-white me-1 font-semibold">Priority Support</span></li>
                         </ul>
+                    </div>
+                </div>
+            </div>
+
+            {/* Comprehensive Feature Comparison Table */}
+            <div className="mt-16">
+                <div className="text-center mb-8">
+                    <h2 className="text-3xl font-bold">Complete Feature Comparison</h2>
+                    <p className="mt-2 text-lg text-slate-400">See exactly what's included in each plan</p>
+                </div>
+                
+                <div className="relative overflow-hidden rounded-md shadow dark:shadow-gray-800 border border-gray-100 dark:border-gray-700">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-gradient-to-r from-amber-400 to-orange-400 text-white">
+                                    <th className="px-6 py-4 text-left text-sm font-semibold">Features</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold">Free</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold">Teacher</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold">School Admin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {/* Capacity & Scale */}
+                                <tr className="bg-amber-50/30 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-900/20">
+                                    <td colSpan="4" className="px-6 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Capacity & Scale</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Students</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">40</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">150</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">500</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Classrooms</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">1</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">3</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">12</td>
+                                </tr>
+                                
+                                {/* AI Features */}
+                                <tr className="bg-amber-50/30 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-900/20">
+                                    <td colSpan="4" className="px-6 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">AI Features</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">DLL AI Generations/day</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">5</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">20</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">50</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Monthly AI Allowance</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">150</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">240</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">600</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">AI Lesson Plan Generator/day</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">5</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">10</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">20</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Assessment Generator/day</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">5</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">10</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">50</td>
+                                </tr>
+                                
+                                {/* School Forms & Enrollment */}
+                                <tr className="bg-amber-50/30 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-900/20">
+                                    <td colSpan="4" className="px-6 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">School Forms & Enrollment</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Automated SF1 to SF10</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">3 Enrollment Modes</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">AI Document Processing</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Bulk CSV/Excel Upload</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">10 students</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">40 students</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">100 students</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Schedule Management</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                
+                                {/* Analytics & Reports */}
+                                <tr className="bg-amber-50/30 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-900/20">
+                                    <td colSpan="4" className="px-6 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Analytics & Reports</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Analytics Reports</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">Basic</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10 font-semibold">Advanced</td>
+                                    <td className="px-6 py-4 text-center text-sm border-b border-gray-100 dark:border-gray-800">Advanced</td>
+                                </tr>
+                                
+                                {/* Premium Features */}
+                                <tr className="bg-amber-50/30 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-900/20">
+                                    <td colSpan="4" className="px-6 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Premium Features</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Worksheet Generator</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><AiOutlineClose className="h-5 w-5 text-gray-400 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">PowerPoint Maker</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><AiOutlineClose className="h-5 w-5 text-gray-400 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Anecdotal Analysis</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><AiOutlineClose className="h-5 w-5 text-gray-400 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                
+                                {/* Community & Support */}
+                                <tr className="bg-amber-50/30 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-900/20">
+                                    <td colSpan="4" className="px-6 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Community & Support</td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium border-b border-gray-100 dark:border-gray-800">Teacher Community Access</td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><AiOutlineClose className="h-5 w-5 text-gray-400 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center border-b border-gray-100 dark:border-gray-800"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                                <tr className="hover:bg-amber-50/20 dark:hover:bg-amber-900/5 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium">Priority Support</td>
+                                    <td className="px-6 py-4 text-center"><AiOutlineClose className="h-5 w-5 text-gray-400 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center bg-amber-50/50 dark:bg-amber-900/10"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                    <td className="px-6 py-4 text-center"><FiCheckCircle className="h-5 w-5 text-green-600 mx-auto" /></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

@@ -42,24 +42,31 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 // Create reusable transporter object using SMTP transport
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+let transporter: nodemailer.Transporter | null = null;
 
-// Verify SMTP connection configuration
-transporter.verify(function (error: Error | null, _success: boolean) {
-  if (error) {
-    console.error('SMTP connection error:', error);
-  } else {
-    console.log('SMTP server is ready to take our messages');
-  }
-});
+// Only create transporter if SMTP is configured
+if (process.env.SMTP_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  // Verify SMTP connection configuration
+  transporter.verify(function (error: Error | null, _success: boolean) {
+    if (error) {
+      console.error('SMTP connection error:', error);
+    } else {
+      console.log('SMTP server is ready to take our messages');
+    }
+  });
+} else {
+  console.log('SMTP not configured - email sending disabled in development mode');
+}
 
 // Types for request bodies
 interface ContactFormData {
@@ -228,32 +235,33 @@ app.post('/api/contact', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Send email to support
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: 'support@betterteachingsolutions.com',
-      subject: `New Contact Form Submission: ${subject}`,
-      text: `
+    if (transporter) {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: 'support@betterteachingsolutions.com',
+        subject: `New Contact Form Submission: ${subject}`,
+        text: `
 Name: ${name}
 Email: ${email}
 Subject: ${subject}
 Message: ${message}
-      `,
-      html: `
+        `,
+        html: `
 <h2>New Contact Form Submission</h2>
 <p><strong>Name:</strong> ${name}</p>
 <p><strong>Email:</strong> ${email}</p>
 <p><strong>Subject:</strong> ${subject}</p>
 <p><strong>Message:</strong></p>
 <p>${message}</p>
-      `,
-    });
+        `,
+      });
 
-    // Send confirmation email to user
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Thank you for contacting Better Teaching Solutions',
-      text: `
+      // Send confirmation email to user
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Thank you for contacting Better Teaching Solutions',
+        text: `
 Dear ${name},
 
 Thank you for contacting Better Teaching Solutions. We have received your message and will get back to you as soon as possible.
@@ -264,8 +272,8 @@ Message: ${message}
 
 Best regards,
 Better Teaching Solutions Team
-      `,
-      html: `
+        `,
+        html: `
 <h2>Thank you for contacting Better Teaching Solutions</h2>
 <p>Dear ${name},</p>
 <p>Thank you for contacting Better Teaching Solutions. We have received your message and will get back to you as soon as possible.</p>
@@ -273,8 +281,12 @@ Better Teaching Solutions Team
 <p><strong>Subject:</strong> ${subject}</p>
 <p><strong>Message:</strong> ${message}</p>
 <p>Best regards,<br>Better Teaching Solutions Team</p>
-      `,
-    });
+        `,
+      });
+    } else {
+      console.log('SMTP not configured - email sending skipped in development mode');
+      console.log('Contact form data:', { name, email, subject, messageLength: message.length });
+    }
 
     console.log('Contact form processed successfully:', {
       timestamp: new Date().toISOString(),

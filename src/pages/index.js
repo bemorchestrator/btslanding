@@ -107,6 +107,46 @@ Just type what you need, and let the AI do the heavy lifting — so you can focu
                 </div>
                 <Pricing/>
             </div>
+
+            {/* FAQ Section */}
+            <div className="container relative md:mt-24 mt-16">
+                <div className="grid grid-cols-1 pb-6 text-center">
+                    <h3 className="mb-4 md:text-3xl md:leading-normal text-2xl leading-normal font-semibold">Frequently Asked Questions</h3>
+                    <p className="text-slate-400 max-w-xl mx-auto">Got questions? We've got answers to help you get started</p>
+                </div>
+
+                <div className="grid md:grid-cols-2 grid-cols-1 mt-6 gap-6">
+                    <div className="relative p-6 border border-gray-100 dark:border-gray-700 rounded-md">
+                        <h5 className="text-xl font-semibold mb-2">Can I change plans later?</h5>
+                        <p className="text-slate-400">Yes, you can upgrade or downgrade your plan at any time from your account settings. Changes take effect immediately.</p>
+                    </div>
+                    
+                    <div className="relative p-6 border border-gray-100 dark:border-gray-700 rounded-md">
+                        <h5 className="text-xl font-semibold mb-2">Is there a free trial?</h5>
+                        <p className="text-slate-400">Yes, our Free plan gives you full access to basic features with no time limit. It's perfect for getting started!</p>
+                    </div>
+                    
+                    <div className="relative p-6 border border-gray-100 dark:border-gray-700 rounded-md">
+                        <h5 className="text-xl font-semibold mb-2">What payment methods do you accept?</h5>
+                        <p className="text-slate-400">We accept all major credit cards and PayPal for secure payment processing. All transactions are encrypted and secure.</p>
+                    </div>
+                    
+                    <div className="relative p-6 border border-gray-100 dark:border-gray-700 rounded-md">
+                        <h5 className="text-xl font-semibold mb-2">Can I cancel anytime?</h5>
+                        <p className="text-slate-400">Yes, you can cancel your subscription at any time with no cancellation fees. You'll continue to have access until the end of your billing period.</p>
+                    </div>
+                    
+                    <div className="relative p-6 border border-gray-100 dark:border-gray-700 rounded-md">
+                        <h5 className="text-xl font-semibold mb-2">How does the AI generation limit work?</h5>
+                        <p className="text-slate-400">Each plan includes daily AI generation limits that reset every 24 hours. Unused generations don't roll over to the next day.</p>
+                    </div>
+                    
+                    <div className="relative p-6 border border-gray-100 dark:border-gray-700 rounded-md">
+                        <h5 className="text-xl font-semibold mb-2">Is my data secure?</h5>
+                        <p className="text-slate-400">Absolutely! We use enterprise-grade security with encryption, regular backups, and strict privacy policies to keep your data safe.</p>
+                    </div>
+                </div>
+            </div>
         </section>
         <Footer/>
         <Switcher/>
