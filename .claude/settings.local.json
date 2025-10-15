@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"src\\components\\clientTwo.js\")",
+      "Bash(del \"src\\components\\pricing.js\")",
+      "Bash(npm run lint)",
+      "Bash(del aboutus.js blog.js blog-detail.js contact.js error.js helpcenter.js index.js index-light.js index-three.js pricing.js privacy.js services.js terms.js)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm run type-check:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm run build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
