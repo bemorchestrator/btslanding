@@ -8,7 +8,12 @@
       "Bash(npx tsc:*)",
       "Bash(pnpm run type-check:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm run build:*)"
+      "Bash(pnpm run build:*)",
+      "Bash(xcopy:*)",
+      "Bash(robocopy:*)",
+      "Bash(powershell:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm run:*)"
     ],
     "deny": [],
     "ask": []
