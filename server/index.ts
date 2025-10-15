@@ -4,6 +4,10 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
 import axios from 'axios';
+import authRoutes from './routes/auth';
+import categoryRoutes from './routes/categories';
+import { connectDatabase } from './config/database';
+import { requireAuth } from './middleware/auth';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
@@ -79,9 +83,15 @@ interface ContactFormData {
   website?: string;
 }
 
+// Mount auth routes
+app.use('/api/auth', authRoutes);
+
+// Mount category routes (protected with auth middleware)
+app.use('/api/categories', requireAuth, categoryRoutes);
+
 // Health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     env: {
@@ -311,19 +321,35 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Environment variables loaded:', {
-      SMTP_HOST: process.env.SMTP_HOST,
-      SMTP_PORT: process.env.SMTP_PORT,
-      SMTP_SECURE: process.env.SMTP_SECURE,
-      EMAIL_USER: process.env.EMAIL_USER ? 'Set' : 'Not set',
-      EMAIL_PASS: process.env.EMAIL_PASS ? 'Set' : 'Not set',
-      RECAPTCHA_SECRET_KEY: process.env.RECAPTCHA_SECRET_KEY ? 'Set' : 'Not set'
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Connect to MongoDB
+    await connectDatabase();
+
+    // Start Express server
+    app.listen(port, () => {
+      console.log(`🚀 Server is running on port ${port}`);
+      console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🔗 API: http://localhost:${port}/api`);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n📦 Environment variables loaded:', {
+          SMTP_HOST: process.env.SMTP_HOST,
+          SMTP_PORT: process.env.SMTP_PORT,
+          SMTP_SECURE: process.env.SMTP_SECURE,
+          EMAIL_USER: process.env.EMAIL_USER ? 'Set' : 'Not set',
+          EMAIL_PASS: process.env.EMAIL_PASS ? 'Set' : 'Not set',
+          RECAPTCHA_SECRET_KEY: process.env.RECAPTCHA_SECRET_KEY ? 'Set' : 'Not set',
+          MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not set',
+        });
+      }
     });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
   }
-}); 
+}
+
+// Start the server
+startServer(); 

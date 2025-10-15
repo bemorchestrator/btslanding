@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LoginPage } from './components/LoginPage';
 import { DashboardLayout } from './components/DashboardLayout';
 import { CategoriesView } from './components/CategoriesView';
 import { ArticlesView } from './components/ArticlesView';
@@ -35,6 +36,7 @@ export type Article = {
 };
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'categories' | 'articles' | 'blog-builder'>('dashboard');
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [selectedCategoryForNew, setSelectedCategoryForNew] = useState<string>('');
@@ -119,6 +121,15 @@ function App() {
     setEditingArticle(null);
     setSelectedCategoryForNew('');
   };
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   return (
     <DashboardLayout currentView={currentView} setCurrentView={setCurrentView}>

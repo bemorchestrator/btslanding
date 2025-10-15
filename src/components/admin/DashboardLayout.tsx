@@ -1,13 +1,14 @@
 import { LayoutDashboard, FolderOpen, FileText, LogOut } from 'lucide-react';
-import logoImage from 'figma:asset/49ad560cb46e058b928645a27bcd46f8ec9bf693.png';
+import logoImage from '../../assets/images/logo-admin.png';
 
 type DashboardLayoutProps = {
   children: React.ReactNode;
   currentView: 'dashboard' | 'categories' | 'articles' | 'blog-builder';
   setCurrentView: (view: 'dashboard' | 'categories' | 'articles' | 'blog-builder') => void;
+  onLogout: () => void;
 };
 
-export function DashboardLayout({ children, currentView, setCurrentView }: DashboardLayoutProps) {
+export function DashboardLayout({ children, currentView, setCurrentView, onLogout }: DashboardLayoutProps) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'categories', label: 'Categories', icon: FolderOpen },
@@ -38,7 +39,7 @@ export function DashboardLayout({ children, currentView, setCurrentView }: Dashb
               return (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentView(item.id as any)}
+                  onClick={() => setCurrentView(item.id as 'dashboard' | 'categories' | 'articles' | 'blog-builder')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-[#d4af37] text-black'
@@ -55,8 +56,8 @@ export function DashboardLayout({ children, currentView, setCurrentView }: Dashb
 
         {/* User section */}
         <div className="p-4 border-t border-[#2a2a2a]">
-          <button 
-            onClick={() => window.location.reload()}
+          <button
+            onClick={onLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-[#2a2a2a] hover:text-white transition-colors"
           >
             <LogOut size={20} />
