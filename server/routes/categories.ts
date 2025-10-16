@@ -13,8 +13,7 @@ router.get('/', async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const categories = (await (Category as any).find()
-      .sort({ createdAt: -1 }) // Sort by newest first
-      .lean()) as any; // Returns plain JavaScript objects instead of Mongoose documents
+      .sort({ createdAt: -1 })) as any; // Removed .lean() to use toJSON transform
 
     res.status(200).json({
       success: true,

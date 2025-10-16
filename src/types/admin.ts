@@ -21,12 +21,14 @@ export interface ArticleContent {
 export interface Article {
   id: string;
   title: string;
+  slug?: string;
   categoryId: string;
   content: string;
   contentBlocks?: ArticleContent[];
   author: string;
   status: 'draft' | 'published';
   createdAt: string;
+  updatedAt?: string;
   featuredImage?: string;
 }
 

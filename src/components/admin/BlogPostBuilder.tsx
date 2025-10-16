@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Trash2, Image as ImageIcon, Type, AlignLeft, Quote, Eye, Save } from 'lucide-react';
+import { ArrowLeft, Trash2, Image as ImageIcon, Type, AlignLeft, Quote, Eye, Save, ExternalLink, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -7,16 +7,17 @@ import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import type { Article, ArticleContent, Category } from '../../types/admin';
+import * as articleService from '../../services/articleService';
 
 type BlogPostBuilderProps = {
   article: Article | null;
   categoryId: string;
   categories: Category[];
-  onSave: (article: Article) => void;
   onCancel: () => void;
+  onArticlesChange?: () => void;
 };
 
-export function BlogPostBuilder({ article, categoryId, categories, onSave, onCancel }: BlogPostBuilderProps) {
+export function BlogPostBuilder({ article, categoryId, categories, onCancel, onArticlesChange }: BlogPostBuilderProps) {
   const [title, setTitle] = useState(article?.title || '');
   const [author, setAuthor] = useState(article?.author || '');
   const [status, setStatus] = useState<'draft' | 'published'>(article?.status || 'draft');
@@ -27,6 +28,9 @@ export function BlogPostBuilder({ article, categoryId, categories, onSave, onCan
       { type: 'paragraph', content: 'Start writing your article here...' }
     ]
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedArticleSlug, setSavedArticleSlug] = useState<string | null>(article?.slug || null);
 
   const addBlock = (type: ArticleContent['type']) => {
     const newBlock: ArticleContent = {
@@ -66,19 +70,63 @@ export function BlogPostBuilder({ article, categoryId, categories, onSave, onCan
     setContentBlocks(updated);
   };
 
-  const handleSave = () => {
-    const savedArticle: Article = {
-      id: article?.id || Date.now().toString(),
-      title,
-      categoryId: selectedCategory,
-      content: contentBlocks.map(block => block.content).join('\n'),
-      contentBlocks,
-      author,
-      status,
-      createdAt: article?.createdAt || new Date().toISOString().split('T')[0],
-      featuredImage,
-    };
-    onSave(savedArticle);
+  const handleSave = async (saveStatus: 'draft' | 'published') => {
+    try {
+      setIsSaving(true);
+      setError(null);
+
+      // Validate required fields
+      if (!title.trim()) {
+        setError('Title is required');
+        return;
+      }
+      if (!author.trim()) {
+        setError('Author is required');
+        return;
+      }
+
+      const articleData = {
+        title,
+        categoryId: selectedCategory,
+        content: contentBlocks.map(block => block.content).join('\n'),
+        contentBlocks,
+        author,
+        status: saveStatus,
+        featuredImage,
+      };
+
+      let savedArticle: Article;
+      if (article?.id) {
+        // Update existing article
+        savedArticle = await articleService.updateArticle(article.id, articleData);
+      } else {
+        // Create new article
+        savedArticle = await articleService.createArticle(articleData);
+      }
+
+      setStatus(saveStatus);
+      setSavedArticleSlug(savedArticle.slug || null);
+      onArticlesChange?.();
+
+      // If published, keep on page to show preview button
+      // If draft, redirect back to articles list
+      if (saveStatus === 'draft') {
+        setTimeout(() => {
+          onCancel();
+        }, 1000);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save article');
+      console.error('Error saving article:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePreview = () => {
+    if (savedArticleSlug && status === 'published') {
+      window.open(`/articles/${savedArticleSlug}`, '_blank');
+    }
   };
 
   const renderBlockEditor = (block: ArticleContent, index: number) => {
@@ -195,6 +243,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onSave, onCan
           <Button
             variant="ghost"
             onClick={onCancel}
+            disabled={isSaving}
             className="text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
           >
             <ArrowLeft size={20} className="mr-2" />
@@ -205,22 +254,60 @@ export function BlogPostBuilder({ article, categoryId, categories, onSave, onCan
           </h1>
         </div>
         <div className="flex gap-2">
+          {savedArticleSlug && status === 'published' && (
+            <Button
+              variant="outline"
+              onClick={handlePreview}
+              className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
+            >
+              <ExternalLink size={20} className="mr-2" />
+              View Public Page
+            </Button>
+          )}
           <Button
             variant="outline"
-            onClick={() => setStatus(status === 'draft' ? 'published' : 'draft')}
+            onClick={() => handleSave('draft')}
+            disabled={isSaving}
             className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
           >
-            {status === 'draft' ? 'Save as Draft' : 'Published'}
+            {isSaving && status === 'draft' ? (
+              <>
+                <Loader2 size={20} className="mr-2 animate-spin" />
+                Saving Draft...
+              </>
+            ) : (
+              <>
+                <Save size={20} className="mr-2" />
+                Save as Draft
+              </>
+            )}
           </Button>
           <Button
-            onClick={handleSave}
-            className="bg-[#d4af37] text-black hover:bg-[#c49d2f]"
+            onClick={() => handleSave('published')}
+            disabled={isSaving}
+            className="bg-[#d4af37] text-black hover:bg-[#c49d2f] disabled:opacity-50"
           >
-            <Save size={20} className="mr-2" />
-            Save Article
+            {isSaving && status === 'published' ? (
+              <>
+                <Loader2 size={20} className="mr-2 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <CheckCircle size={20} className="mr-2" />
+                Publish
+              </>
+            )}
           </Button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-900/20 border border-red-900/50 text-red-400 px-4 py-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
 
       {/* Article Settings */}
       <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 mb-6">

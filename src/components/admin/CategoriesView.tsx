@@ -24,11 +24,7 @@ export function CategoriesView({ onCategoriesChange }: CategoriesViewProps) {
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch categories on mount
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
+  // Fetch categories function (for use in CRUD operations)
   const fetchCategories = async () => {
     try {
       setLoading(true);
@@ -42,6 +38,25 @@ export function CategoriesView({ onCategoriesChange }: CategoriesViewProps) {
       setLoading(false);
     }
   };
+
+  // Fetch categories on mount only
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await categoryService.getCategories();
+        setCategories(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch categories');
+        console.error('Error fetching categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCreate = async () => {
     if (!formData.name || !formData.description) {

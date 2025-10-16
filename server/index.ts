@@ -6,6 +6,7 @@ import path from 'path';
 import axios from 'axios';
 import authRoutes from './routes/auth';
 import categoryRoutes from './routes/categories';
+import articleRoutes from './routes/articles';
 import { connectDatabase } from './config/database';
 import { requireAuth } from './middleware/auth';
 
@@ -88,6 +89,9 @@ app.use('/api/auth', authRoutes);
 
 // Mount category routes (protected with auth middleware)
 app.use('/api/categories', requireAuth, categoryRoutes);
+
+// Mount article routes (auth handled per-route inside articles.ts)
+app.use('/api/articles', articleRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -216,9 +220,9 @@ app.post('/api/contact', async (req: Request, res: Response): Promise<void> => {
             res.status(400).json({ message: 'Security verification failed. Please try again later.' });
             return;
           }
-        } catch (recaptchaError: any) {
+        } catch (recaptchaError: unknown) {
           console.error('reCAPTCHA verification error:', recaptchaError);
-          if (recaptchaError?.code === 'ECONNABORTED') {
+          if (recaptchaError && typeof recaptchaError === 'object' && 'code' in recaptchaError && recaptchaError.code === 'ECONNABORTED') {
             res.status(400).json({ message: 'Security verification timed out. Please try again.' });
           } else {
             res.status(400).json({ message: 'Security verification failed. Please try again.' });
