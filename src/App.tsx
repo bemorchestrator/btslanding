@@ -17,6 +17,7 @@ import Terms from './pages/terms';
 import Privacy from './pages/privacy';
 import Error from './pages/error';
 import Contact from './pages/contact';
+import ArticlePreview from './pages/article-preview';
 import AdminLogin from './pages/admin/login';
 import AdminDashboard from './pages/admin/dashboard';
 
@@ -40,6 +41,7 @@ function App() {
         <Route path='/privacy' element={<Privacy/>} />
         <Route path='/error' element={<Error/>} />
         <Route path='/contact' element={<Contact/>} />
+        <Route path='/articles/:slug' element={<ArticlePreview/>} />
 
         {/* Admin routes */}
         <Route path='/admin/login' element={<AdminLogin/>} />

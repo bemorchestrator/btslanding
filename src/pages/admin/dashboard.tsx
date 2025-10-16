@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '../../components/admin/ProtectedRoute';
 import { DashboardLayout } from '../../components/admin/DashboardLayout';
 import { DashboardOverview } from '../../components/admin/DashboardOverview';
@@ -7,6 +7,7 @@ import { ArticlesView } from '../../components/admin/ArticlesView';
 import { BlogPostBuilder } from '../../components/admin/BlogPostBuilder';
 import { useAuth } from '../../contexts/AuthContext';
 import * as categoryService from '../../services/categoryService';
+import * as articleService from '../../services/articleService';
 import type { Category, Article } from '../../types/admin';
 
 export default function AdminDashboard() {
@@ -16,55 +17,64 @@ export default function AdminDashboard() {
   const [selectedCategoryForNew, setSelectedCategoryForNew] = useState<string>('');
   const [categoriesCount, setCategoriesCount] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [articlesCount, setArticlesCount] = useState<number>(0);
+  const [publishedCount, setPublishedCount] = useState<number>(0);
 
-  // Fetch categories on mount (needed for dropdowns in ArticlesView and BlogPostBuilder)
+  // Fetch categories on mount only
   useEffect(() => {
-    fetchCategories();
+    const loadCategories = async () => {
+      try {
+        const data = await categoryService.getCategories();
+        setCategories(data);
+        setCategoriesCount(data.length);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchCategories = async () => {
-    try {
-      const data = await categoryService.getCategories();
-      setCategories(data);
-      setCategoriesCount(data.length);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
+  // Fetch articles on mount only
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        const data = await articleService.getArticles();
+        setArticlesCount(data.length);
+        setPublishedCount(data.filter(article => article.status === 'published').length);
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      }
+    };
+    loadArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleCategoriesChange = () => {
-    fetchCategories();
-  };
+  const handleCategoriesChange = useCallback(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await categoryService.getCategories();
+        setCategories(data);
+        setCategoriesCount(data.length);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    loadCategories();
+  }, []);
 
-  const [articles, setArticles] = useState<Article[]>([
-    {
-      id: '1',
-      title: 'Building Positive Classroom Culture',
-      categoryId: '1',
-      content: 'Creating a positive classroom environment starts with setting clear expectations...',
-      author: 'Sarah Johnson',
-      status: 'published',
-      createdAt: '2025-02-10',
-    },
-    {
-      id: '2',
-      title: '5 Tips for Effective Lesson Planning',
-      categoryId: '2',
-      content: 'Efficient lesson planning can save hours of work each week...',
-      author: 'Michael Chen',
-      status: 'published',
-      createdAt: '2025-02-12',
-    },
-    {
-      id: '3',
-      title: 'Interactive Activities for Math Class',
-      categoryId: '3',
-      content: 'Students learn best when they are actively engaged in the material...',
-      author: 'Emily Rodriguez',
-      status: 'draft',
-      createdAt: '2025-02-14',
-    },
-  ]);
+  const handleArticlesChange = useCallback(() => {
+    const loadArticles = async () => {
+      try {
+        const data = await articleService.getArticles();
+        setArticlesCount(data.length);
+        setPublishedCount(data.filter(article => article.status === 'published').length);
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      }
+    };
+    loadArticles();
+  }, []);
 
   const handleCreateArticle = (categoryId: string) => {
     setSelectedCategoryForNew(categoryId);
@@ -77,23 +87,12 @@ export default function AdminDashboard() {
     setCurrentView('blog-builder');
   };
 
-  const handleSaveArticle = (article: Article) => {
-    if (editingArticle) {
-      // Update existing article
-      setArticles(articles.map(a => a.id === article.id ? article : a));
-    } else {
-      // Create new article
-      setArticles([...articles, article]);
-    }
-    setCurrentView('articles');
-    setEditingArticle(null);
-    setSelectedCategoryForNew('');
-  };
-
   const handleCancelBuilder = () => {
     setCurrentView('articles');
     setEditingArticle(null);
     setSelectedCategoryForNew('');
+    // Refresh articles after returning from builder
+    handleArticlesChange();
   };
 
   return (
@@ -102,8 +101,8 @@ export default function AdminDashboard() {
         {currentView === 'dashboard' && (
           <DashboardOverview
             categoriesCount={categoriesCount}
-            articlesCount={articles.length}
-            publishedCount={articles.filter(a => a.status === 'published').length}
+            articlesCount={articlesCount}
+            publishedCount={publishedCount}
           />
         )}
         {currentView === 'categories' && (
@@ -113,11 +112,10 @@ export default function AdminDashboard() {
         )}
         {currentView === 'articles' && (
           <ArticlesView
-            articles={articles}
-            setArticles={setArticles}
             categories={categories}
             onCreateArticle={handleCreateArticle}
             onEditArticle={handleEditArticle}
+            onArticlesChange={handleArticlesChange}
           />
         )}
         {currentView === 'blog-builder' && (
@@ -125,8 +123,8 @@ export default function AdminDashboard() {
             article={editingArticle}
             categoryId={selectedCategoryForNew}
             categories={categories}
-            onSave={handleSaveArticle}
             onCancel={handleCancelBuilder}
+            onArticlesChange={handleArticlesChange}
           />
         )}
       </DashboardLayout>

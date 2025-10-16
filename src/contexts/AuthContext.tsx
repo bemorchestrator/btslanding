@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from 'react';
 import type { AuthState, User } from '../types/admin';
 
 interface AuthContextType extends AuthState {
@@ -19,10 +19,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token: null,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const hasVerified = useRef(false);
 
-  // Verify token on mount
+  // Verify token on mount ONCE
   useEffect(() => {
     const verifyToken = async () => {
+      // Prevent multiple verification calls
+      if (hasVerified.current) {
+        return;
+      }
+
+      hasVerified.current = true;
+
       const storedToken = localStorage.getItem(TOKEN_KEY);
       const storedUser = localStorage.getItem(USER_KEY);
 
@@ -59,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     verifyToken();
   }, []);
 
-  const login = (token: string, username: string) => {
+  const login = useCallback((token: string, username: string) => {
     const user: User = { username, role: 'admin' };
 
     // Store in localStorage
@@ -72,9 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       token,
     });
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     // Clear localStorage
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -85,17 +93,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: null,
       token: null,
     });
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      isAuthenticated: authState.isAuthenticated,
+      user: authState.user,
+      token: authState.token,
+      login,
+      logout,
+      isLoading,
+    }),
+    [authState.isAuthenticated, authState.user, authState.token, login, logout, isLoading]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        ...authState,
-        login,
-        logout,
-        isLoading,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,0 +1,202 @@
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import Navbar from '../components/navbar';
+import Footer from '../components/footer';
+import * as articleService from '../services/articleService';
+import type { Article, ArticleContent } from '../types/admin';
+
+export default function ArticlePreview(): JSX.Element {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const [article, setArticle] = useState<Article | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('dir', 'ltr');
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+
+    const fetchArticle = async (articleSlug: string) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await articleService.getArticleBySlug(articleSlug);
+        setArticle(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Article not found');
+        console.error('Error fetching article:', err);
+        // Redirect to homepage after a moment
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchArticle(slug);
+    } else {
+      navigate('/');
+    }
+  }, [slug, navigate]);
+
+  const renderContentBlock = (block: ArticleContent, index: number) => {
+    const style: React.CSSProperties = {
+      textAlign: block.style?.textAlign || 'left',
+    };
+
+    switch (block.type) {
+      case 'heading':
+        return (
+          <h2 key={index} style={style} className="text-3xl font-semibold md:tracking-normal tracking-normal md:leading-normal leading-normal mt-6 mb-4">
+            {block.content}
+          </h2>
+        );
+      case 'paragraph':
+        return (
+          <p key={index} style={style} className="text-slate-400 text-lg mt-4 leading-relaxed">
+            {block.content}
+          </p>
+        );
+      case 'image':
+        return block.content ? (
+          <img
+            key={index}
+            src={block.content}
+            alt=""
+            className="rounded-md w-full my-6"
+          />
+        ) : null;
+      case 'quote':
+        return (
+          <div key={index} className="relative rounded-md border-s-4 border-amber-400 px-6 py-8 my-6 bg-gray-50 dark:bg-slate-800">
+            <p className="text-2xl font-medium italic">{block.content}</p>
+            <div className="absolute text-8xl -top-0 start-4 text-amber-500/10 dark:text-amber-500/20 -z-1">
+              <i className="mdi mdi-format-quote-open"></i>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <section className="relative md:pt-44 pt-36">
+          <div className="container relative">
+            <div className="flex items-center justify-center h-96">
+              <Loader2 className="h-12 w-12 text-amber-400 animate-spin" />
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !article) {
+    return (
+      <>
+        <Navbar />
+        <section className="relative md:pt-44 pt-36">
+          <div className="container relative">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-4">Article Not Found</h1>
+              <p className="text-slate-400 text-lg">
+                {error || 'The article you are looking for does not exist or is not published yet.'}
+              </p>
+              <p className="text-slate-400 text-sm mt-2">Redirecting to home page...</p>
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navbar />
+      <section className="relative md:pt-44 pt-36 bg-gradient-to-b from-amber-400/20 dark:from-amber-400/40 to-transparent">
+        <div className="container relative">
+          <div className="md:flex justify-center">
+            <div className="lg:w-2/3 md:w-4/5">
+              {/* Category Badge */}
+              <Link
+                to={`/blog?category=${article.categoryId}`}
+                className="bg-amber-400 text-white text-[12px] font-semibold px-2.5 py-0.5 rounded h-5 inline-block"
+              >
+                Article
+              </Link>
+
+              {/* Title */}
+              <h1 className="md:text-4xl text-3xl font-bold md:tracking-normal tracking-normal md:leading-normal leading-normal mt-3">
+                {article.title}
+              </h1>
+
+              {/* Meta Information */}
+              <div className="flex items-center mt-5">
+                <div className="ms-0">
+                  <h6 className="font-medium text-lg">{article.author}</h6>
+                  <span className="text-slate-400 text-sm">
+                    {formatDate(article.createdAt)}
+                    {article.updatedAt && article.updatedAt !== article.createdAt && (
+                      <span className="ml-2">(Updated {formatDate(article.updatedAt)})</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative md:pb-24 pb-16 pt-7">
+        <div className="container relative">
+          <div className="md:flex justify-center">
+            <div className="lg:w-2/3 md:w-4/5">
+              {/* Featured Image */}
+              {article.featuredImage && (
+                <img src={article.featuredImage} className="rounded-md mb-6" alt={article.title} />
+              )}
+
+              {/* Article Content Blocks */}
+              {article.contentBlocks && article.contentBlocks.length > 0 ? (
+                <div className="prose prose-lg prose-invert max-w-none">
+                  {article.contentBlocks.map((block, index) => renderContentBlock(block, index))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-lg">{article.content}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </>
+  );
+}
+
+// Temporary Link component (since we're not using react-router Link here)
+function Link({ to, children, className }: { to: string; children: React.ReactNode; className?: string }) {
+  return (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  );
+}
