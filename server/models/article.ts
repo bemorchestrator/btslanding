@@ -21,6 +21,12 @@ export interface IArticle extends Document {
   author: string;
   status: 'draft' | 'published';
   featuredImage?: string;
+  // Draft fields - for saving work-in-progress without affecting published content
+  draftTitle?: string;
+  draftCategoryId?: mongoose.Types.ObjectId;
+  draftContent?: string;
+  draftAuthor?: string;
+  draftFeaturedImage?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,6 +90,27 @@ const ArticleSchema: Schema = new Schema(
       default: 'draft',
     },
     featuredImage: {
+      type: String,
+      trim: true,
+    },
+    // Draft fields - for saving work-in-progress without affecting published content
+    draftTitle: {
+      type: String,
+      trim: true,
+    },
+    draftCategoryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
+    },
+    draftContent: {
+      type: String,
+      default: '',
+    },
+    draftAuthor: {
+      type: String,
+      trim: true,
+    },
+    draftFeaturedImage: {
       type: String,
       trim: true,
     },

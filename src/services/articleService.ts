@@ -1,4 +1,4 @@
-import type { Article } from '../types/admin';
+import type { Article, ArticleUpdatePayload } from '../types/admin';
 
 const API_BASE_URL = '/api/articles';
 
@@ -124,7 +124,7 @@ export async function createArticle(article: Omit<Article, 'id' | 'createdAt' | 
 /**
  * Update existing article
  */
-export async function updateArticle(id: string, article: Partial<Article>): Promise<Article> {
+export async function updateArticle(id: string, article: ArticleUpdatePayload): Promise<Article> {
   const token = getAuthToken();
   if (!token) {
     window.location.href = '/admin/login';

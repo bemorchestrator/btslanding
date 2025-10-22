@@ -13,7 +13,9 @@
       "Bash(robocopy:*)",
       "Bash(powershell:*)",
       "Bash(pnpm run lint:*)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(cat:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

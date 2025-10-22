@@ -19,6 +19,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [articlesCount, setArticlesCount] = useState<number>(0);
   const [publishedCount, setPublishedCount] = useState<number>(0);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
   // Fetch categories on mount only
   useEffect(() => {
@@ -63,17 +64,29 @@ export default function AdminDashboard() {
     loadCategories();
   }, []);
 
-  const handleArticlesChange = useCallback(() => {
-    const loadArticles = async () => {
-      try {
-        const data = await articleService.getArticles();
-        setArticlesCount(data.length);
-        setPublishedCount(data.filter(article => article.status === 'published').length);
-      } catch (error) {
-        console.error('Error fetching articles:', error);
-      }
-    };
-    loadArticles();
+  const handleArticlesChange = useCallback(async () => {
+    try {
+      const data = await articleService.getArticles();
+      setArticlesCount(data.length);
+      setPublishedCount(data.filter(article => article.status === 'published').length);
+
+      // If we're currently editing an article, update it with fresh data from the database
+      // Use functional setState to access the latest editingArticle value
+      setEditingArticle(currentEditingArticle => {
+        if (currentEditingArticle?.id) {
+          const updatedArticle = data.find(a => a.id === currentEditingArticle.id);
+          if (updatedArticle) {
+            return updatedArticle;
+          }
+        }
+        return currentEditingArticle;
+      });
+
+      // Increment refresh trigger to notify ArticlesView to refetch
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+    }
   }, []);
 
   const handleCreateArticle = (categoryId: string) => {
@@ -116,6 +129,7 @@ export default function AdminDashboard() {
             onCreateArticle={handleCreateArticle}
             onEditArticle={handleEditArticle}
             onArticlesChange={handleArticlesChange}
+            refreshTrigger={refreshTrigger}
           />
         )}
         {currentView === 'blog-builder' && (
