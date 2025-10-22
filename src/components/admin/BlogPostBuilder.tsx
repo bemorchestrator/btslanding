@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Loader2, ExternalLink, Eye, X, Trash2, EyeOff } from 'lucide-react';
+import { ArrowLeft, Loader2, ExternalLink, Eye, X, Trash2, EyeOff, Save, Upload } from 'lucide-react';
 import { RichTextEditor } from './RichTextEditor';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -30,8 +30,13 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [savingAs, setSavingAs] = useState<'draft' | 'published' | null>(null);
 
-  // Check if there are draft changes (derived from props, not local state)
-  const hasDraftChanges = !!(article?.draftTitle || article?.draftContent || article?.draftAuthor);
+  // Track draft changes locally for immediate UI updates
+  const [localHasDraftChanges, setLocalHasDraftChanges] = useState(
+    !!(article?.draftTitle || article?.draftContent || article?.draftAuthor)
+  );
+
+  // Use local state if available, otherwise derive from props
+  const hasDraftChanges = localHasDraftChanges;
 
   const handleSave = async (saveStatus: 'draft' | 'published', isDraftSave: boolean = false) => {
     try {
@@ -81,6 +86,13 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
 
       setStatus(saveStatus);
       setSavedArticleSlug(savedArticle.slug || null);
+
+      // Update local draft indicator state immediately
+      if (isDraftSave) {
+        setLocalHasDraftChanges(true); // Just saved a draft
+      } else {
+        setLocalHasDraftChanges(false); // Published/updated live, no more drafts
+      }
 
       // Refresh articles to update the article prop with latest data
       onArticlesChange?.();
@@ -180,6 +192,9 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
         setFeaturedImage(article.featuredImage || '');
         setContent(article.content || '');
 
+        // Clear draft indicator immediately
+        setLocalHasDraftChanges(false);
+
         setSuccess('Draft changes discarded. Reverted to published version.');
         setTimeout(() => setSuccess(null), 3000);
 
@@ -195,7 +210,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col">
+    <div className="h-screen bg-[#0a0a0a] flex flex-col overflow-hidden">
       {/* Back button and heading - Very top left, no padding */}
       <div className="flex items-center justify-between p-6">
         <div className="flex items-center gap-4">
@@ -256,9 +271,9 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
       )}
 
       {/* Main Content - Two Column Layout */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {/* Left Side - Editor */}
-        <div className="flex-1 px-6 pb-6">
+        <div className="flex-1 px-6 pb-6 overflow-y-auto">
           {/* Title Input */}
           <input
             type="text"
@@ -277,16 +292,16 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
         </div>
 
         {/* Right Sidebar - WordPress Style */}
-        <div className="w-80 border-l border-[#2a2a2a] p-6 space-y-6">
+        <div className="w-80 border-l border-[#2a2a2a] p-6 space-y-6 overflow-y-auto flex-shrink-0">
           {/* Publish Section */}
           <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
             <h3 className="text-white text-sm font-semibold mb-4">Publish</h3>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
               <Button
                 onClick={() => handleSave(status, true)}
                 disabled={isSaving}
                 variant="outline"
-                className="flex-1 border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a]"
+                className="w-full border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] hover:border-[#4a4a4a]"
               >
                 {isSaving && savingAs === status ? (
                   <>
@@ -294,13 +309,16 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
                     Saving...
                   </>
                 ) : (
-                  'Save Draft'
+                  <>
+                    <Save size={16} className="mr-2" />
+                    Save Draft
+                  </>
                 )}
               </Button>
               <Button
                 onClick={() => handleSave('published', false)}
                 disabled={isSaving}
-                className="flex-1 bg-[#d4af37] text-black hover:bg-[#c49d2f]"
+                className="w-full bg-[#d4af37] text-black hover:bg-[#c49d2f] font-medium"
               >
                 {savingAs === 'published' && isSaving ? (
                   <>
@@ -308,7 +326,10 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
                     {status === 'published' ? 'Updating...' : 'Publishing...'}
                   </>
                 ) : (
-                  status === 'published' ? 'Update Live' : 'Publish'
+                  <>
+                    <Upload size={16} className="mr-2" />
+                    {status === 'published' ? 'Update Live' : 'Publish'}
+                  </>
                 )}
               </Button>
             </div>
@@ -392,7 +413,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
                   onClick={handleDiscardChanges}
                   disabled={isSaving}
                   variant="outline"
-                  className="w-full border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] mb-2"
+                  className="w-full border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] hover:border-[#4a4a4a] mb-2"
                 >
                   <X size={16} className="mr-2" />
                   Discard Changes
@@ -404,7 +425,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
                   onClick={() => handleSave('draft')}
                   disabled={isSaving}
                   variant="outline"
-                  className="w-full border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] mb-2"
+                  className="w-full border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] hover:border-[#4a4a4a] mb-2"
                 >
                   <EyeOff size={16} className="mr-2" />
                   Unpublish Article
@@ -415,7 +436,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
                 onClick={handleDelete}
                 disabled={isSaving}
                 variant="outline"
-                className="w-full border-red-900/50 bg-transparent text-red-400 hover:bg-red-900/20 hover:border-red-900"
+                className="w-full border-red-900/50 bg-[#1a1a1a] text-red-400 hover:bg-red-900/30 hover:border-red-800"
               >
                 <Trash2 size={16} className="mr-2" />
                 Delete Article
