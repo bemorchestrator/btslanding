@@ -14,9 +14,10 @@ type ArticlesViewProps = {
   onCreateArticle: (categoryId: string) => void;
   onEditArticle: (article: Article) => void;
   onArticlesChange?: () => void;
+  refreshTrigger?: number;
 };
 
-export function ArticlesView({ categories, onCreateArticle, onEditArticle, onArticlesChange }: ArticlesViewProps) {
+export function ArticlesView({ categories, onCreateArticle, onEditArticle, onArticlesChange, refreshTrigger }: ArticlesViewProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +60,14 @@ export function ArticlesView({ categories, onCreateArticle, onEditArticle, onArt
     loadArticles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Refetch articles when refreshTrigger changes (e.g., after article updates)
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      fetchArticles();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   const handleCategorySelect = () => {
     if (selectedCategory) {

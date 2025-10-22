@@ -68,7 +68,7 @@ export function DashboardLayout({ children, currentView, setCurrentView, onLogou
 
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <div className="p-8">
+        <div className={currentView === 'blog-builder' ? 'p-0' : 'p-8'}>
           {children}
         </div>
       </div>

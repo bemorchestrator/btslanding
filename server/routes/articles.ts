@@ -171,7 +171,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<v
 router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { title, categoryId, content, contentBlocks, author, status, featuredImage } = req.body;
+    const { title, categoryId, content, contentBlocks, author, status, featuredImage, saveDraft, draftTitle, draftCategoryId, draftContent, draftAuthor, draftFeaturedImage } = req.body;
 
     // Validate required fields
     if (!title || !categoryId || !author) {
@@ -193,23 +193,76 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise
       return;
     }
 
-    // Update article fields
-    article.title = title;
-    article.categoryId = categoryId;
-    article.content = content || '';
-    article.contentBlocks = contentBlocks || [];
-    article.author = author;
-    article.status = status || 'draft';
-    if (featuredImage !== undefined) {
-      article.featuredImage = featuredImage;
+    // Check if we're explicitly clearing draft fields (discard operation)
+    const isClearingDrafts =
+      draftTitle !== undefined &&
+      draftCategoryId !== undefined &&
+      draftContent !== undefined &&
+      draftAuthor !== undefined;
+
+    // If explicit draft fields are provided (e.g., for clearing during discard), set them
+    // This allows setting them to null to clear draft changes
+    if (draftTitle !== undefined) {
+      article.draftTitle = draftTitle === null ? undefined : draftTitle;
+    }
+    if (draftCategoryId !== undefined) {
+      article.draftCategoryId = draftCategoryId === null ? undefined : draftCategoryId;
+    }
+    if (draftContent !== undefined) {
+      article.draftContent = draftContent === null ? undefined : draftContent;
+    }
+    if (draftAuthor !== undefined) {
+      article.draftAuthor = draftAuthor === null ? undefined : draftAuthor;
+    }
+    if (draftFeaturedImage !== undefined) {
+      article.draftFeaturedImage = draftFeaturedImage === null ? undefined : draftFeaturedImage;
+    }
+
+    // Only run save/publish logic if we're NOT explicitly clearing drafts
+    if (!isClearingDrafts && saveDraft === true) {
+      // Save Draft mode: Only update draft fields, keep published content untouched
+      article.draftTitle = title;
+      article.draftCategoryId = categoryId;
+      article.draftContent = content || '';
+      article.draftAuthor = author;
+      if (featuredImage !== undefined) {
+        article.draftFeaturedImage = featuredImage;
+      }
+    } else if (!isClearingDrafts) {
+      // Publish/Update mode: Update published fields and CLEAR draft fields
+      // Skip this if we're explicitly clearing drafts
+      article.title = title;
+      article.categoryId = categoryId;
+      article.content = content || '';
+      article.contentBlocks = contentBlocks || [];
+      article.author = author;
+      article.status = status || 'draft';
+      if (featuredImage !== undefined) {
+        article.featuredImage = featuredImage;
+      }
+
+      // Clear draft fields since we're publishing the changes
+      article.draftTitle = undefined;
+      article.draftCategoryId = undefined;
+      article.draftContent = undefined;
+      article.draftAuthor = undefined;
+      article.draftFeaturedImage = undefined;
     }
 
     // Save will trigger pre-save hook to regenerate slug if title changed
     await article.save();
 
+    // Determine success message based on operation type
+    let successMessage = 'Article updated successfully';
+    if (isClearingDrafts) {
+      successMessage = 'Draft changes discarded successfully';
+    } else if (saveDraft) {
+      successMessage = 'Draft saved successfully';
+    }
+
     res.status(200).json({
       success: true,
-      message: 'Article updated successfully',
+      message: successMessage,
       data: article,
     });
   } catch (error) {

@@ -30,7 +30,23 @@ export interface Article {
   createdAt: string;
   updatedAt?: string;
   featuredImage?: string;
+  // Draft fields - for work-in-progress without affecting published content
+  draftTitle?: string;
+  draftCategoryId?: string;
+  draftContent?: string;
+  draftAuthor?: string;
+  draftFeaturedImage?: string;
 }
+
+// Article update payload - allows null for draft fields to clear them
+export type ArticleUpdatePayload = Partial<Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'draftTitle' | 'draftCategoryId' | 'draftContent' | 'draftAuthor' | 'draftFeaturedImage'>> & {
+  draftTitle?: string | null;
+  draftCategoryId?: string | null;
+  draftContent?: string | null;
+  draftAuthor?: string | null;
+  draftFeaturedImage?: string | null;
+  saveDraft?: boolean;
+};
 
 // Auth types
 export interface User {

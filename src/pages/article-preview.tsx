@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { Helmet } from 'react-helmet';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import * as articleService from '../services/articleService';
@@ -92,6 +93,24 @@ export default function ArticlePreview(): JSX.Element {
     });
   };
 
+  const formatISODate = (dateString: string) => {
+    return new Date(dateString).toISOString();
+  };
+
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement('DIV');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
+  const getMetaDescription = (article: Article): string => {
+    if (article.content) {
+      const plainText = stripHtml(article.content);
+      return plainText.substring(0, 160) + (plainText.length > 160 ? '...' : '');
+    }
+    return `Read ${article.title} by ${article.author} on Better Teaching Solutions`;
+  };
+
   if (loading) {
     return (
       <>
@@ -128,8 +147,66 @@ export default function ArticlePreview(): JSX.Element {
     );
   }
 
+  const canonicalUrl = `https://betterteachingsolutions.com/articles/${slug}`;
+  const siteUrl = 'https://betterteachingsolutions.com';
+
   return (
     <>
+      <Helmet>
+        {/* Primary Meta Tags */}
+        <title>{article.title} | Better Teaching Solutions</title>
+        <meta name="title" content={article.title} />
+        <meta name="description" content={getMetaDescription(article)} />
+        <meta name="author" content={article.author} />
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={getMetaDescription(article)} />
+        {article.featuredImage && <meta property="og:image" content={article.featuredImage} />}
+        <meta property="og:site_name" content="Better Teaching Solutions" />
+        <meta property="article:published_time" content={formatISODate(article.createdAt)} />
+        {article.updatedAt && <meta property="article:modified_time" content={formatISODate(article.updatedAt)} />}
+        <meta property="article:author" content={article.author} />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={canonicalUrl} />
+        <meta property="twitter:title" content={article.title} />
+        <meta property="twitter:description" content={getMetaDescription(article)} />
+        {article.featuredImage && <meta property="twitter:image" content={article.featuredImage} />}
+
+        {/* Schema.org JSON-LD */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BlogPosting',
+            headline: article.title,
+            description: getMetaDescription(article),
+            image: article.featuredImage || `${siteUrl}/logo.png`,
+            author: {
+              '@type': 'Person',
+              name: article.author,
+            },
+            publisher: {
+              '@type': 'Organization',
+              name: 'Better Teaching Solutions',
+              logo: {
+                '@type': 'ImageObject',
+                url: `${siteUrl}/logo.png`,
+              },
+            },
+            datePublished: formatISODate(article.createdAt),
+            dateModified: article.updatedAt ? formatISODate(article.updatedAt) : formatISODate(article.createdAt),
+            mainEntityOfPage: {
+              '@type': 'WebPage',
+              '@id': canonicalUrl,
+            },
+          })}
+        </script>
+      </Helmet>
       <Navbar />
       <section className="relative md:pt-44 pt-36 bg-gradient-to-b from-amber-400/20 dark:from-amber-400/40 to-transparent">
         <div className="container relative">
@@ -174,13 +251,18 @@ export default function ArticlePreview(): JSX.Element {
                 <img src={article.featuredImage} className="rounded-md mb-6" alt={article.title} />
               )}
 
-              {/* Article Content Blocks */}
+              {/* Article Content */}
               {article.contentBlocks && article.contentBlocks.length > 0 ? (
+                // Legacy: Block-based content
                 <div className="prose prose-lg prose-invert max-w-none">
                   {article.contentBlocks.map((block, index) => renderContentBlock(block, index))}
                 </div>
               ) : (
-                <p className="text-slate-400 text-lg">{article.content}</p>
+                // New: Rich HTML content from WYSIWYG editor
+                <div
+                  className="prose prose-lg prose-invert max-w-none text-slate-300"
+                  dangerouslySetInnerHTML={{ __html: article.content }}
+                />
               )}
             </div>
           </div>

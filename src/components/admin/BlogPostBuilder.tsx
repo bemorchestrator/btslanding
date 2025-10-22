@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, Trash2, Image as ImageIcon, Type, AlignLeft, Quote, Eye, Save, ExternalLink, Loader2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, ExternalLink, Eye, X, Trash2, EyeOff } from 'lucide-react';
+import { RichTextEditor } from './RichTextEditor';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import type { Article, ArticleContent, Category } from '../../types/admin';
+import type { Article, Category } from '../../types/admin';
 import * as articleService from '../../services/articleService';
 
 type BlogPostBuilderProps = {
@@ -18,62 +16,29 @@ type BlogPostBuilderProps = {
 };
 
 export function BlogPostBuilder({ article, categoryId, categories, onCancel, onArticlesChange }: BlogPostBuilderProps) {
-  const [title, setTitle] = useState(article?.title || '');
-  const [author, setAuthor] = useState(article?.author || '');
+  // When editing existing article, load draft version if it exists, otherwise load published version
+  const [title, setTitle] = useState(article?.draftTitle || article?.title || '');
+  const [author, setAuthor] = useState(article?.draftAuthor || article?.author || '');
   const [status, setStatus] = useState<'draft' | 'published'>(article?.status || 'draft');
-  const [selectedCategory, setSelectedCategory] = useState(article?.categoryId || categoryId);
-  const [featuredImage, setFeaturedImage] = useState(article?.featuredImage || '');
-  const [contentBlocks, setContentBlocks] = useState<ArticleContent[]>(
-    article?.contentBlocks || [
-      { type: 'paragraph', content: 'Start writing your article here...' }
-    ]
-  );
+  const [selectedCategory, setSelectedCategory] = useState(article?.draftCategoryId || article?.categoryId || categoryId);
+  const [featuredImage, setFeaturedImage] = useState(article?.draftFeaturedImage || article?.featuredImage || '');
+  const [content, setContent] = useState(article?.draftContent || article?.content || '');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [savedArticleSlug, setSavedArticleSlug] = useState<string | null>(article?.slug || null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [savingAs, setSavingAs] = useState<'draft' | 'published' | null>(null);
 
-  const addBlock = (type: ArticleContent['type']) => {
-    const newBlock: ArticleContent = {
-      type,
-      content: type === 'image' ? 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f' : '',
-      style: {}
-    };
-    setContentBlocks([...contentBlocks, newBlock]);
-  };
+  // Check if there are draft changes (derived from props, not local state)
+  const hasDraftChanges = !!(article?.draftTitle || article?.draftContent || article?.draftAuthor);
 
-  const updateBlock = (index: number, content: string) => {
-    const updated = [...contentBlocks];
-    updated[index].content = content;
-    setContentBlocks(updated);
-  };
-
-  const updateBlockStyle = (index: number, style: ArticleContent['style']) => {
-    const updated = [...contentBlocks];
-    updated[index].style = { ...updated[index].style, ...style };
-    setContentBlocks(updated);
-  };
-
-  const deleteBlock = (index: number) => {
-    setContentBlocks(contentBlocks.filter((_, i) => i !== index));
-  };
-
-  const moveBlock = (index: number, direction: 'up' | 'down') => {
-    if (
-      (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === contentBlocks.length - 1)
-    ) {
-      return;
-    }
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    const updated = [...contentBlocks];
-    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
-    setContentBlocks(updated);
-  };
-
-  const handleSave = async (saveStatus: 'draft' | 'published') => {
+  const handleSave = async (saveStatus: 'draft' | 'published', isDraftSave: boolean = false) => {
     try {
       setIsSaving(true);
+      setSavingAs(saveStatus);
       setError(null);
+      setSuccess(null);
 
       // Validate required fields
       if (!title.trim()) {
@@ -85,14 +50,24 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
         return;
       }
 
+      // Strip HTML tags to check if content is empty
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+      if (!textContent.trim()) {
+        setError('Article content is required');
+        return;
+      }
+
       const articleData = {
         title,
         categoryId: selectedCategory,
-        content: contentBlocks.map(block => block.content).join('\n'),
-        contentBlocks,
+        content,
         author,
         status: saveStatus,
         featuredImage,
+        saveDraft: isDraftSave, // Tell backend whether to save as draft only
       };
 
       let savedArticle: Article;
@@ -106,20 +81,36 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
 
       setStatus(saveStatus);
       setSavedArticleSlug(savedArticle.slug || null);
+
+      // Refresh articles to update the article prop with latest data
       onArticlesChange?.();
 
-      // If published, keep on page to show preview button
-      // If draft, redirect back to articles list
-      if (saveStatus === 'draft') {
+      // Show success message
+      let successMsg = '';
+      if (isDraftSave) {
+        // User clicked "Save Draft"
+        successMsg = 'Draft saved successfully';
+      } else {
+        // User clicked "Update Live" or "Publish"
+        successMsg = status === 'published' ? 'Article updated and live' : 'Article published successfully';
+      }
+      setSuccess(successMsg);
+
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+
+      // If draft, redirect back to articles list after showing success
+      if (saveStatus === 'draft' && !article) {
         setTimeout(() => {
           onCancel();
-        }, 1000);
+        }, 1500);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save article');
       console.error('Error saving article:', err);
     } finally {
       setIsSaving(false);
+      setSavingAs(null);
     }
   };
 
@@ -129,347 +120,371 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
     }
   };
 
-  const renderBlockEditor = (block: ArticleContent, index: number) => {
-    switch (block.type) {
-      case 'heading':
-        return (
-          <div className="space-y-2">
-            <Input
-              value={block.content}
-              onChange={(e) => updateBlock(index, e.target.value)}
-              placeholder="Enter heading text..."
-              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500 text-2xl"
-            />
-            <div className="flex gap-2">
-              <Select
-                value={block.style?.textAlign || 'left'}
-                onValueChange={(value: 'left' | 'center' | 'right') => updateBlockStyle(index, { textAlign: value })}
-              >
-                <SelectTrigger className="bg-[#2a2a2a] border-[#3a3a3a] text-white w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#2a2a2a] border-[#3a3a3a]">
-                  <SelectItem value="left" className="text-white focus:bg-[#3a3a3a] focus:text-white">Left</SelectItem>
-                  <SelectItem value="center" className="text-white focus:bg-[#3a3a3a] focus:text-white">Center</SelectItem>
-                  <SelectItem value="right" className="text-white focus:bg-[#3a3a3a] focus:text-white">Right</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-      case 'paragraph':
-        return (
-          <Textarea
-            value={block.content}
-            onChange={(e) => updateBlock(index, e.target.value)}
-            placeholder="Enter paragraph text..."
-            className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500 min-h-[100px]"
-          />
-        );
-      case 'image':
-        return (
-          <div className="space-y-2">
-            <Input
-              value={block.content}
-              onChange={(e) => updateBlock(index, e.target.value)}
-              placeholder="Enter image URL..."
-              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500"
-            />
-            {block.content && (
-              <img
-                src={block.content}
-                alt="Preview"
-                className="w-full max-h-64 object-cover rounded"
-              />
-            )}
-          </div>
-        );
-      case 'quote':
-        return (
-          <Textarea
-            value={block.content}
-            onChange={(e) => updateBlock(index, e.target.value)}
-            placeholder="Enter quote text..."
-            className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500 italic min-h-[80px]"
-          />
-        );
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const getCategoryName = () => {
+    const category = categories.find(cat => cat.id === selectedCategory);
+    return category?.name || 'Article';
+  };
+
+  const handleDelete = async () => {
+    if (!article?.id) return;
+
+    if (window.confirm('Are you sure you want to delete this article? This cannot be undone.')) {
+      try {
+        setIsSaving(true);
+        await articleService.deleteArticle(article.id);
+        onArticlesChange?.();
+        onCancel(); // Go back to articles list
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete article');
+        console.error('Error deleting article:', err);
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
-  const renderBlockPreview = (block: ArticleContent) => {
-    const style: React.CSSProperties = {
-      textAlign: block.style?.textAlign || 'left',
-    };
+  const handleDiscardChanges = async () => {
+    if (window.confirm('Discard all draft changes? This will revert to the published version and clear your drafts.')) {
+      if (!article?.id) return;
 
-    switch (block.type) {
-      case 'heading':
-        return (
-          <h2 style={style} className="text-white text-3xl mb-4">
-            {block.content || 'Heading'}
-          </h2>
-        );
-      case 'paragraph':
-        return (
-          <p style={style} className="text-gray-300 mb-4">
-            {block.content || 'Paragraph'}
-          </p>
-        );
-      case 'image':
-        return block.content ? (
-          <img
-            src={block.content}
-            alt=""
-            className="w-full max-h-96 object-cover rounded mb-4"
-          />
-        ) : (
-          <div className="w-full h-48 bg-[#2a2a2a] rounded flex items-center justify-center mb-4">
-            <ImageIcon className="text-gray-600" size={48} />
-          </div>
-        );
-      case 'quote':
-        return (
-          <blockquote className="border-l-4 border-[#d4af37] pl-4 italic text-gray-300 mb-4">
-            {block.content || 'Quote'}
-          </blockquote>
-        );
+      try {
+        setIsSaving(true);
+        // Clear draft fields by setting them to null
+        // We need to use null instead of undefined because undefined gets stripped during JSON.stringify
+        await articleService.updateArticle(article.id, {
+          title: article.title,
+          categoryId: article.categoryId,
+          content: article.content,
+          author: article.author,
+          status: article.status,
+          featuredImage: article.featuredImage,
+          draftTitle: null,
+          draftCategoryId: null,
+          draftContent: null,
+          draftAuthor: null,
+          draftFeaturedImage: null,
+        });
+
+        // Reset local state to published values
+        setTitle(article.title);
+        setAuthor(article.author);
+        setSelectedCategory(article.categoryId);
+        setFeaturedImage(article.featuredImage || '');
+        setContent(article.content || '');
+
+        setSuccess('Draft changes discarded. Reverted to published version.');
+        setTimeout(() => setSuccess(null), 3000);
+
+        // Refresh the articles list to update the article data
+        onArticlesChange?.();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to discard changes');
+        console.error('Error discarding changes:', err);
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col">
+      {/* Back button and heading - Very top left, no padding */}
+      <div className="flex items-center justify-between p-6">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
+          <button
             onClick={onCancel}
             disabled={isSaving}
-            className="text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
+            className="text-gray-400 hover:text-white flex items-center gap-2"
           >
-            <ArrowLeft size={20} className="mr-2" />
-            Back to Articles
-          </Button>
-          <h1 className="text-white text-3xl">
-            {article ? 'Edit Article' : 'Create New Article'}
+            <ArrowLeft size={18} />
+            Back
+          </button>
+          <h1 className="text-white text-xl font-medium">
+            {article ? 'Edit Article' : 'Add New Article'}
           </h1>
-        </div>
-        <div className="flex gap-2">
-          {savedArticleSlug && status === 'published' && (
-            <Button
-              variant="outline"
-              onClick={handlePreview}
-              className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
-            >
-              <ExternalLink size={20} className="mr-2" />
-              View Public Page
-            </Button>
+          {article && hasDraftChanges && (
+            <span className="px-2 py-1 bg-amber-900/30 border border-amber-900/50 text-amber-400 text-xs rounded">
+              Draft Changes
+            </span>
           )}
-          <Button
-            variant="outline"
-            onClick={() => handleSave('draft')}
-            disabled={isSaving}
-            className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
+        </div>
+
+        {/* Preview Buttons */}
+        <div className="flex items-center gap-3">
+          {/* Preview Changes - Always available */}
+          <button
+            onClick={() => setIsPreviewOpen(true)}
+            className="text-gray-400 hover:text-white flex items-center gap-2 text-sm"
           >
-            {isSaving && status === 'draft' ? (
-              <>
-                <Loader2 size={20} className="mr-2 animate-spin" />
-                Saving Draft...
-              </>
-            ) : (
-              <>
-                <Save size={20} className="mr-2" />
-                Save as Draft
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={() => handleSave('published')}
-            disabled={isSaving}
-            className="bg-[#d4af37] text-black hover:bg-[#c49d2f] disabled:opacity-50"
-          >
-            {isSaving && status === 'published' ? (
-              <>
-                <Loader2 size={20} className="mr-2 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              <>
-                <CheckCircle size={20} className="mr-2" />
-                Publish
-              </>
-            )}
-          </Button>
+            <Eye size={16} />
+            Preview Changes
+          </button>
+
+          {/* Preview Live - Only if published */}
+          {savedArticleSlug && status === 'published' && (
+            <button
+              onClick={handlePreview}
+              className="text-gray-400 hover:text-white flex items-center gap-2 text-sm"
+            >
+              <ExternalLink size={16} />
+              Preview Live
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Success Message */}
+      {success && (
+        <div className="mx-6 mb-4 bg-green-900/20 border border-green-900/50 text-green-400 px-4 py-3 rounded-lg text-sm">
+          {success}
+        </div>
+      )}
+
       {/* Error Message */}
       {error && (
-        <div className="bg-red-900/20 border border-red-900/50 text-red-400 px-4 py-3 rounded-lg mb-4">
+        <div className="mx-6 mb-4 bg-red-900/20 border border-red-900/50 text-red-400 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
-      {/* Article Settings */}
-      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 mb-6">
-        <h2 className="text-white text-xl mb-4">Article Settings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="title" className="text-gray-300 mb-2 block">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter article title..."
-              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500"
-            />
+      {/* Main Content - Two Column Layout */}
+      <div className="flex-1 flex">
+        {/* Left Side - Editor */}
+        <div className="flex-1 px-6 pb-6">
+          {/* Title Input */}
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Add title"
+            className="w-full bg-transparent border border-[#505050] text-white text-3xl font-bold placeholder:text-gray-600 focus:outline-none focus:border-2 focus:border-[#3a3a3a] px-4 py-5 mb-6 rounded-lg transition-all"
+          />
+
+          {/* Rich Text Editor */}
+          <RichTextEditor
+            value={content}
+            onChange={setContent}
+            placeholder="Start writing your article..."
+          />
+        </div>
+
+        {/* Right Sidebar - WordPress Style */}
+        <div className="w-80 border-l border-[#2a2a2a] p-6 space-y-6">
+          {/* Publish Section */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
+            <h3 className="text-white text-sm font-semibold mb-4">Publish</h3>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleSave(status, true)}
+                disabled={isSaving}
+                variant="outline"
+                className="flex-1 border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a]"
+              >
+                {isSaving && savingAs === status ? (
+                  <>
+                    <Loader2 size={16} className="mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Draft'
+                )}
+              </Button>
+              <Button
+                onClick={() => handleSave('published', false)}
+                disabled={isSaving}
+                className="flex-1 bg-[#d4af37] text-black hover:bg-[#c49d2f]"
+              >
+                {savingAs === 'published' && isSaving ? (
+                  <>
+                    <Loader2 size={16} className="mr-2 animate-spin" />
+                    {status === 'published' ? 'Updating...' : 'Publishing...'}
+                  </>
+                ) : (
+                  status === 'published' ? 'Update Live' : 'Publish'
+                )}
+              </Button>
+            </div>
+            <div className="mt-4 pt-4 border-t border-[#2a2a2a]">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Status:</span>
+                <span className="text-white">{status === 'draft' ? 'Draft' : 'Published'}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm mt-2">
+                <span className="text-gray-400">Visibility:</span>
+                <span className="text-white">Public</span>
+              </div>
+              {article && hasDraftChanges && (
+                <div className="flex items-center justify-between text-sm mt-2">
+                  <span className="text-gray-400">Draft Changes:</span>
+                  <span className="text-amber-400 text-xs">Unpublished edits</span>
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <Label htmlFor="author" className="text-gray-300 mb-2 block">Author</Label>
+
+          {/* Featured Image */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
+            <h3 className="text-white text-sm font-semibold mb-4">Featured Image</h3>
             <Input
-              id="author"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="Enter author name..."
-              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500"
+              value={featuredImage}
+              onChange={(e) => setFeaturedImage(e.target.value)}
+              placeholder="Image URL"
+              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500 text-sm"
             />
+            {featuredImage && (
+              <div className="mt-3">
+                <img
+                  src={featuredImage}
+                  alt="Featured"
+                  className="w-full h-32 object-cover rounded border border-[#3a3a3a]"
+                />
+              </div>
+            )}
           </div>
-          <div>
-            <Label htmlFor="category" className="text-gray-300 mb-2 block">Category</Label>
+
+          {/* Category */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
+            <h3 className="text-white text-sm font-semibold mb-4">Category</h3>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="bg-[#2a2a2a] border-[#3a3a3a] text-white">
+              <SelectTrigger className="bg-[#2a2a2a] border-[#3a3a3a] text-white text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[#2a2a2a] border-[#3a3a3a]">
                 {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id} className="text-white focus:bg-[#3a3a3a] focus:text-white">
+                  <SelectItem
+                    key={category.id}
+                    value={category.id}
+                    className="text-white focus:bg-[#3a3a3a] focus:text-white text-sm"
+                  >
                     {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label htmlFor="featured-image" className="text-gray-300 mb-2 block">Featured Image URL</Label>
+
+          {/* Author */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
+            <h3 className="text-white text-sm font-semibold mb-4">Author</h3>
             <Input
-              id="featured-image"
-              value={featuredImage}
-              onChange={(e) => setFeaturedImage(e.target.value)}
-              placeholder="Enter image URL..."
-              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="Author name"
+              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500 text-sm"
             />
           </div>
+
+          {/* Article Actions - Only for existing articles */}
+          {article && (
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
+              <h3 className="text-white text-sm font-semibold mb-3">Article Actions</h3>
+
+              {hasDraftChanges && (
+                <Button
+                  onClick={handleDiscardChanges}
+                  disabled={isSaving}
+                  variant="outline"
+                  className="w-full border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] mb-2"
+                >
+                  <X size={16} className="mr-2" />
+                  Discard Changes
+                </Button>
+              )}
+
+              {status === 'published' && (
+                <Button
+                  onClick={() => handleSave('draft')}
+                  disabled={isSaving}
+                  variant="outline"
+                  className="w-full border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] mb-2"
+                >
+                  <EyeOff size={16} className="mr-2" />
+                  Unpublish Article
+                </Button>
+              )}
+
+              <Button
+                onClick={handleDelete}
+                disabled={isSaving}
+                variant="outline"
+                className="w-full border-red-900/50 bg-transparent text-red-400 hover:bg-red-900/20 hover:border-red-900"
+              >
+                <Trash2 size={16} className="mr-2" />
+                Delete Article
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Content Builder */}
-      <Tabs defaultValue="edit" className="w-full">
-        <TabsList className="bg-[#1a1a1a] border border-[#2a2a2a]">
-          <TabsTrigger value="edit" className="text-gray-400 data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
-            Edit
-          </TabsTrigger>
-          <TabsTrigger value="preview" className="text-gray-400 data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
-            <Eye size={16} className="mr-2" />
-            Preview
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="edit" className="space-y-4 mt-4">
-          {/* Add Block Buttons */}
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
-            <p className="text-gray-400 text-sm mb-3">Add Content Block:</p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => addBlock('heading')}
-                variant="outline"
-                className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
+      {/* Preview Modal */}
+      {isPreviewOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 overflow-y-auto py-8">
+          <div className="relative w-full max-w-5xl bg-[#0a0a0a] rounded-lg shadow-2xl mx-4">
+            {/* Modal Header */}
+            <div className="sticky top-0 z-10 bg-[#1a1a1a] border-b border-[#2a2a2a] px-6 py-4 flex items-center justify-between rounded-t-lg">
+              <h2 className="text-white text-xl font-semibold">Article Preview</h2>
+              <button
+                onClick={() => setIsPreviewOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors"
               >
-                <Type size={16} className="mr-2" />
-                Heading
-              </Button>
-              <Button
-                onClick={() => addBlock('paragraph')}
-                variant="outline"
-                className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
-              >
-                <AlignLeft size={16} className="mr-2" />
-                Paragraph
-              </Button>
-              <Button
-                onClick={() => addBlock('image')}
-                variant="outline"
-                className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
-              >
-                <ImageIcon size={16} className="mr-2" />
-                Image
-              </Button>
-              <Button
-                onClick={() => addBlock('quote')}
-                variant="outline"
-                className="border-[#3a3a3a] bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white"
-              >
-                <Quote size={16} className="mr-2" />
-                Quote
-              </Button>
+                <X size={24} />
+              </button>
             </div>
-          </div>
 
-          {/* Content Blocks */}
-          {contentBlocks.map((block, index) => (
-            <div key={index} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-[#d4af37] text-sm uppercase">{block.type}</span>
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => moveBlock(index, 'up')}
-                    disabled={index === 0}
-                    className="p-1 text-gray-400 hover:text-white disabled:opacity-30"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    onClick={() => moveBlock(index, 'down')}
-                    disabled={index === contentBlocks.length - 1}
-                    className="p-1 text-gray-400 hover:text-white disabled:opacity-30"
-                  >
-                    ↓
-                  </button>
-                  <button
-                    onClick={() => deleteBlock(index)}
-                    className="p-1 text-gray-400 hover:text-red-500"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+            {/* Preview Content - Styled like article-preview page */}
+            <div className="p-8">
+              {/* Header Section */}
+              <div className="mb-8 pb-8 border-b border-[#2a2a2a]">
+                <span className="bg-amber-400 text-white text-xs font-semibold px-2.5 py-1 rounded inline-block">
+                  {getCategoryName()}
+                </span>
+                <h1 className="text-4xl font-bold text-white mt-4 mb-4">
+                  {title || 'Untitled Article'}
+                </h1>
+                <div className="flex items-center text-slate-400 text-sm">
+                  <span className="font-medium text-white mr-2">{author || 'Author Name'}</span>
+                  <span>•</span>
+                  <span className="ml-2">{formatDate(article?.createdAt || new Date().toISOString())}</span>
                 </div>
               </div>
-              {renderBlockEditor(block, index)}
-            </div>
-          ))}
-        </TabsContent>
 
-        <TabsContent value="preview" className="mt-4">
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-8">
-            {featuredImage && (
-              <img
-                src={featuredImage}
-                alt={title}
-                className="w-full h-64 object-cover rounded-lg mb-6"
-              />
-            )}
-            <h1 className="text-white text-4xl mb-2">{title || 'Untitled Article'}</h1>
-            <p className="text-gray-400 mb-6">
-              By {author || 'Unknown Author'} •{' '}
-              {categories.find(c => c.id === selectedCategory)?.name || 'Uncategorized'}
-            </p>
-            <div className="prose prose-invert max-w-none">
-              {contentBlocks.map((block, index) => (
-                <div key={index}>{renderBlockPreview(block)}</div>
-              ))}
+              {/* Featured Image */}
+              {featuredImage && (
+                <img
+                  src={featuredImage}
+                  alt={title}
+                  className="w-full rounded-lg mb-8"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              )}
+
+              {/* Article Content */}
+              <div className="prose prose-lg prose-invert max-w-none">
+                {content ? (
+                  <div
+                    className="text-slate-300 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: content }}
+                  />
+                ) : (
+                  <p className="text-slate-500 italic">No content yet. Start writing to see your article preview.</p>
+                )}
+              </div>
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }
