@@ -4,14 +4,20 @@ import { Loader2 } from 'lucide-react';
 import { Helmet } from 'react-helmet';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
+import { Breadcrumb } from '../components/Breadcrumb';
 import { getPublishedArticleBySlug, getPublicCategories } from '../services/publicArticleService';
-import type { Article, ArticleContent, Category } from '../types/admin';
+import { getAuthors } from '../services/authorService';
+import type { Article, ArticleContent, Category, Author } from '../types/admin';
+
+// Fallback logo
+const btsLogo = '/btsolutions.png';
 
 export default function ArticlePreview(): JSX.Element {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [article, setArticle] = useState<Article | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,12 +30,14 @@ export default function ArticlePreview(): JSX.Element {
       try {
         setLoading(true);
         setError(null);
-        const [articleData, categoriesData] = await Promise.all([
+        const [articleData, categoriesData, authorsData] = await Promise.all([
           getPublishedArticleBySlug(articleSlug),
-          getPublicCategories()
+          getPublicCategories(),
+          getAuthors()
         ]);
         setArticle(articleData);
         setCategories(categoriesData);
+        setAuthors(authorsData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Article not found');
         console.error('Error fetching article:', err);
@@ -48,6 +56,24 @@ export default function ArticlePreview(): JSX.Element {
       navigate('/');
     }
   }, [slug, navigate]);
+
+  // Helper: Get author info from name
+  const getAuthorInfo = (authorName: string): { name: string; profilePicture: string } => {
+    const author = authors.find(a => a.name === authorName);
+    if (author) {
+      // Found author in database, use their profile picture
+      return {
+        name: author.name,
+        profilePicture: author.profilePicture
+      };
+    } else {
+      // Custom/guest author - use BTS logo as fallback
+      return {
+        name: authorName,
+        profilePicture: btsLogo
+      };
+    }
+  };
 
   const renderContentBlock = (block: ArticleContent, index: number) => {
     const style: React.CSSProperties = {
@@ -164,17 +190,18 @@ export default function ArticlePreview(): JSX.Element {
     <>
       <Helmet>
         {/* Primary Meta Tags */}
-        <title>{article.title} | Better Teaching Solutions</title>
-        <meta name="title" content={article.title} />
-        <meta name="description" content={getMetaDescription(article)} />
+        <title>{article.metaTitle || `${article.title} | Better Teaching Solutions`}</title>
+        <meta name="title" content={article.metaTitle || article.title} />
+        <meta name="description" content={article.metaDescription || getMetaDescription(article)} />
         <meta name="author" content={article.author} />
+        {article.focusKeyword && <meta name="keywords" content={article.focusKeyword} />}
         <link rel="canonical" href={canonicalUrl} />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:title" content={article.title} />
-        <meta property="og:description" content={getMetaDescription(article)} />
+        <meta property="og:title" content={article.metaTitle || article.title} />
+        <meta property="og:description" content={article.metaDescription || getMetaDescription(article)} />
         {article.featuredImage && <meta property="og:image" content={article.featuredImage} />}
         <meta property="og:site_name" content="Better Teaching Solutions" />
         <meta property="article:published_time" content={formatISODate(article.createdAt)} />
@@ -184,8 +211,8 @@ export default function ArticlePreview(): JSX.Element {
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={canonicalUrl} />
-        <meta property="twitter:title" content={article.title} />
-        <meta property="twitter:description" content={getMetaDescription(article)} />
+        <meta property="twitter:title" content={article.metaTitle || article.title} />
+        <meta property="twitter:description" content={article.metaDescription || getMetaDescription(article)} />
         {article.featuredImage && <meta property="twitter:image" content={article.featuredImage} />}
 
         {/* Schema.org JSON-LD */}
@@ -193,8 +220,9 @@ export default function ArticlePreview(): JSX.Element {
           {JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'BlogPosting',
-            headline: article.title,
-            description: getMetaDescription(article),
+            headline: article.metaTitle || article.title,
+            description: article.metaDescription || getMetaDescription(article),
+            keywords: article.focusKeyword,
             image: article.featuredImage || `${siteUrl}/logo.png`,
             author: {
               '@type': 'Person',
@@ -222,6 +250,15 @@ export default function ArticlePreview(): JSX.Element {
         <div className="container relative">
           <div className="md:flex justify-center">
             <div className="lg:w-2/3 md:w-4/5">
+              {/* Breadcrumb */}
+              <Breadcrumb
+                items={[
+                  { label: 'Home', href: '/' },
+                  { label: 'Blog', href: '/blog' },
+                  { label: article.title },
+                ]}
+              />
+
               {/* Category Badge */}
               <span className="bg-amber-400/10 text-amber-500 dark:text-amber-400 text-[12px] font-semibold px-2.5 py-0.5 rounded inline-block whitespace-nowrap overflow-hidden text-ellipsis">
                 {getCategoryName(article.categoryId)}
@@ -234,15 +271,33 @@ export default function ArticlePreview(): JSX.Element {
 
               {/* Meta Information */}
               <div className="flex items-center mt-5">
-                <div className="ms-0">
-                  <h6 className="font-medium text-lg">{article.author}</h6>
-                  <span className="text-slate-400 text-sm">
-                    {formatDate(article.createdAt)}
-                    {article.updatedAt && article.updatedAt !== article.createdAt && (
-                      <span className="ml-2">(Updated {formatDate(article.updatedAt)})</span>
-                    )}
-                  </span>
-                </div>
+                {(() => {
+                  const authorInfo = getAuthorInfo(article.author);
+                  return (
+                    <>
+                      <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-gray-200 mr-4">
+                        <img
+                          src={authorInfo.profilePicture}
+                          className={`${authorInfo.profilePicture === btsLogo ? 'h-6 w-6 object-contain' : 'h-full w-full object-cover'}`}
+                          alt={authorInfo.name}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = btsLogo;
+                            (e.target as HTMLImageElement).className = 'h-6 w-6 object-contain';
+                          }}
+                        />
+                      </div>
+                      <div className="ms-0">
+                        <h6 className="font-medium text-lg">{authorInfo.name}</h6>
+                        <span className="text-slate-400 text-sm">
+                          {formatDate(article.createdAt)}
+                          {article.updatedAt && article.updatedAt !== article.createdAt && (
+                            <span className="ml-2">(Updated {formatDate(article.updatedAt)})</span>
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -268,6 +323,61 @@ export default function ArticlePreview(): JSX.Element {
                 // New: Rich HTML content from WYSIWYG editor
                 <>
                   <style>{`
+                    /* Heading styles */
+                    .article-content h1 {
+                      font-size: 2.25rem;
+                      font-weight: 700;
+                      margin-top: 2rem;
+                      margin-bottom: 1rem;
+                      color: #ffffff;
+                      line-height: 1.2;
+                    }
+
+                    .article-content h2 {
+                      font-size: 1.875rem;
+                      font-weight: 700;
+                      margin-top: 1.75rem;
+                      margin-bottom: 0.875rem;
+                      color: #ffffff;
+                      line-height: 1.3;
+                    }
+
+                    .article-content h3 {
+                      font-size: 1.5rem;
+                      font-weight: 600;
+                      margin-top: 1.5rem;
+                      margin-bottom: 0.75rem;
+                      color: #ffffff;
+                      line-height: 1.4;
+                    }
+
+                    .article-content h4 {
+                      font-size: 1.25rem;
+                      font-weight: 600;
+                      margin-top: 1.25rem;
+                      margin-bottom: 0.625rem;
+                      color: #f1f5f9;
+                      line-height: 1.4;
+                    }
+
+                    .article-content h5 {
+                      font-size: 1.125rem;
+                      font-weight: 600;
+                      margin-top: 1rem;
+                      margin-bottom: 0.5rem;
+                      color: #f1f5f9;
+                      line-height: 1.5;
+                    }
+
+                    .article-content h6 {
+                      font-size: 1rem;
+                      font-weight: 600;
+                      margin-top: 1rem;
+                      margin-bottom: 0.5rem;
+                      color: #cbd5e1;
+                      line-height: 1.5;
+                    }
+
                     .article-content blockquote {
                       position: relative;
                       padding: 2rem 2.5rem;

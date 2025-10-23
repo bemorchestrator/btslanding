@@ -6,6 +6,23 @@ export interface Category {
   createdAt: string;
 }
 
+// Author types
+export interface Author {
+  id: string;
+  name: string;
+  profilePicture: string;
+  bio: string;
+  email?: string;
+  social?: {
+    twitter?: string;
+    linkedin?: string;
+    facebook?: string;
+    website?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Article content block types
 export interface ArticleContent {
   type: 'heading' | 'paragraph' | 'image' | 'quote';
@@ -30,6 +47,10 @@ export interface Article {
   createdAt: string;
   updatedAt?: string;
   featuredImage?: string;
+  // SEO Meta Fields
+  metaTitle?: string;
+  metaDescription?: string;
+  focusKeyword?: string;
   // Draft fields - for work-in-progress without affecting published content
   draftTitle?: string;
   draftCategoryId?: string;
