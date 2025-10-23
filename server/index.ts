@@ -8,7 +8,6 @@ import authRoutes from './routes/auth';
 import categoryRoutes from './routes/categories';
 import articleRoutes from './routes/articles';
 import { connectDatabase } from './config/database';
-import { requireAuth } from './middleware/auth';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
@@ -88,8 +87,8 @@ interface ContactFormData {
 // Mount auth routes
 app.use('/api/auth', authRoutes);
 
-// Mount category routes (protected with auth middleware)
-app.use('/api/categories', requireAuth, categoryRoutes);
+// Mount category routes (auth handled per-route inside categories.ts)
+app.use('/api/categories', categoryRoutes);
 
 // Mount article routes (auth handled per-route inside articles.ts)
 app.use('/api/articles', articleRoutes);

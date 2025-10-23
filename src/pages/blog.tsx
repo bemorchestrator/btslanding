@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import bgImage from "../assets/images/bg/btshome1.jpg"
 
@@ -6,15 +6,94 @@ import Footer from "../components/footer";
 import Switcher from "../components/switcher";
 import NavLight from "../components/navlight";
 
-import { blogData } from "../data/data";
+import { getPublishedArticles, getPublicCategories } from "../services/publicArticleService";
+import type { Article, Category } from "../types/admin";
 import { FiClock, FiCalendar } from '../assets/icons/vander'
 
+// Default images
+import defaultBlogImage from "../assets/images/blog/1.jpg";
+
 export default function Blog(): JSX.Element {
+    const [articles, setArticles] = useState<Article[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const articlesPerPage = 9; // Show 9 articles per page (3x3 grid)
+
     useEffect(() => {
         document.documentElement.setAttribute("dir", "ltr");
         document.documentElement.classList.add('dark');
         document.documentElement.classList.remove('light');
     }, []);
+
+    // Fetch articles and categories when page loads
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [articlesData, categoriesData] = await Promise.all([
+                    getPublishedArticles(),
+                    getPublicCategories()
+                ]);
+                setArticles(articlesData);
+                setCategories(categoriesData);
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching blog data:', err);
+                setError('Failed to load articles. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Helper: Get category name from ID
+    const getCategoryName = (categoryId: string): string => {
+        const category = categories.find(cat => cat.id === categoryId);
+        return category ? category.name : 'Uncategorized';
+    };
+
+    // Helper: Calculate reading time
+    const calculateReadTime = (content: string): string => {
+        const wordsPerMinute = 200;
+        const wordCount = content.split(/\s+/).length;
+        const minutes = Math.ceil(wordCount / wordsPerMinute);
+        return `${minutes} min read`;
+    };
+
+    // Helper: Format date nicely
+    const formatDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
+
+    // Pagination calculations
+    const totalPages = Math.ceil(articles.length / articlesPerPage);
+    const indexOfLastArticle = currentPage * articlesPerPage;
+    const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
+    const currentArticles = articles.slice(indexOfFirstArticle, indexOfLastArticle);
+
+    // Generate page numbers to display
+    const getPageNumbers = (): number[] => {
+        const pageNumbers: number[] = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pageNumbers.push(i);
+        }
+        return pageNumbers;
+    };
+
+    // Handle page change
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <>
@@ -45,72 +124,129 @@ export default function Blog(): JSX.Element {
 
             <section className="relative md:py-24 py-16">
                 <div className="container relative">
-                    <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
-                        {blogData.map((item, index) => {
-                            return (
-                                <div className="relative bg-white dark:bg-slate-900 p-4 rounded-md shadow dark:shadow-gray-700" key={index}>
-                                    <img src={item.image} className="rounded-md shadow dark:shadow-gray-700" alt="" />
-                                    <div className="pt-4">
-                                        <div className="flex justify-between items-center">
-                                            <div className="space-x-1">
-                                                <Link to="" className="bg-amber-400/10 text-amber-500 dark:text-amber-400 text-[12px] font-semibold px-2.5 py-0.5 rounded h-5">AI</Link>
-                                                <Link to="" className="bg-amber-400/10 text-amber-500 dark:text-amber-400 text-[12px] font-semibold px-2.5 py-0.5 rounded h-5">Marketing</Link>
+                    {loading ? (
+                        <div className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
+                            <p className="mt-4 text-slate-400">Loading articles...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-12">
+                            <p className="text-red-500">{error}</p>
+                        </div>
+                    ) : articles.length === 0 ? (
+                        <div className="text-center py-12">
+                            <p className="text-slate-400">No articles published yet. Check back soon!</p>
+                        </div>
+                    ) : (
+                        <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
+                            {currentArticles.map((article) => {
+                                const categoryName = getCategoryName(article.categoryId);
+                                const readTime = calculateReadTime(article.content);
+                                const formattedDate = formatDate(article.createdAt);
+                                const articleImage = article.featuredImage || defaultBlogImage;
+                                const articleSlug = article.slug || article.id;
+
+                                return (
+                                    <div className="relative bg-white dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={article.id}>
+                                        {/* Featured Image */}
+                                        <Link to={`/articles/${articleSlug}`} className="relative w-full aspect-[5/3] overflow-hidden block group">
+                                            <img
+                                                src={articleImage}
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                alt={article.title}
+                                            />
+                                        </Link>
+
+                                        {/* Card Content */}
+                                        <div className="p-4 flex flex-col flex-grow">
+                                            {/* Section 1: Category Tag | Read Time */}
+                                            <div className="flex justify-between items-center gap-2 mb-4">
+                                                <div className="flex-shrink-0 min-w-0">
+                                                    <span className="bg-amber-400/10 text-amber-500 dark:text-amber-400 text-[12px] font-semibold px-2.5 py-0.5 rounded inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
+                                                        {categoryName}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center text-slate-400 text-sm flex-shrink-0 whitespace-nowrap">
+                                                    <FiClock className="h-4 w-4" />
+                                                    <span className="ml-1">{readTime}</span>
+                                                </div>
                                             </div>
 
-                                            <span className="flex items-center"><FiClock className="h-4 w-4" /><span className="ms-1 text-slate-400">5 min read</span></span>
-                                        </div>
+                                            {/* Section 2: Title */}
+                                            <div className="mb-4 flex-grow">
+                                                <Link to={`/articles/${articleSlug}`} className="text-lg font-semibold hover:text-amber-400 line-clamp-2 block">
+                                                    {article.title}
+                                                </Link>
+                                            </div>
 
-                                        <div className="mt-5">
-                                            <Link to={`/blog-detail/${item.id}`} className="text-lg font-semibold hover:text-amber-400">{item.title}</Link>
-                                        </div>
-
-                                        <div className="mt-5 flex justify-between items-center">
-                                            <span className="flex items-center">
-                                                <img src={item.client} className="h-7 w-7 rounded-full" alt="" />
-                                                <Link to="" className="ms-1 text-slate-400 hover:text-amber-400">{item.author}</Link>
-                                            </span>
-
-                                            <span className="flex items-center"><FiCalendar className="h-4 w-4" /><span className="ms-1 text-slate-400">{item.date}</span></span>
+                                            {/* Section 3: Author Info | Date Posted */}
+                                            <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800">
+                                                <div className="flex items-center flex-shrink-0">
+                                                    <div className="h-7 w-7 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200">
+                                                        <img src="/btsolutions.png" className="h-4 w-4 object-contain" alt="BTS Logo" />
+                                                    </div>
+                                                    <span className="ml-2 text-slate-400 text-sm">{article.author}</span>
+                                                </div>
+                                                <div className="flex items-center text-slate-400 text-sm flex-shrink-0 ml-2">
+                                                    <FiCalendar className="h-4 w-4" />
+                                                    <span className="ml-1">{formattedDate}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-
-                    <div className="grid md:grid-cols-12 grid-cols-1 mt-8">
-                        <div className="md:col-span-12 text-center">
-                            <nav aria-label="Page navigation example">
-                                <ul className="inline-flex items-center -space-x-px">
-                                    <li>
-                                        <Link to="#" className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-white dark:bg-slate-900 rounded-s-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400">
-                                            <i className="mdi mdi-chevron-left text-[20px] rtl:rotate-180 rtl:-mt-1"></i>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="#" className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 hover:text-white bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400">1</Link>
-                                    </li>
-                                    <li>
-                                        <Link to="#" className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 hover:text-white bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400">2</Link>
-                                    </li>
-                                    <li>
-                                        <Link to="#" aria-current="page" className="z-10 w-9 h-9 inline-flex text-sm justify-center items-center text-white bg-amber-400 border border-amber-400">3</Link>
-                                    </li>
-                                    <li>
-                                        <Link to="#" className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 hover:text-white bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400">4</Link>
-                                    </li>
-                                    <li>
-                                        <Link to="#" className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 hover:text-white bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400">5</Link>
-                                    </li>
-                                    <li>
-                                        <Link to="#" className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-white dark:bg-slate-900 rounded-e-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400">
-                                            <i className="mdi mdi-chevron-right text-[20px] rtl:rotate-180 rtl:-mt-1"></i>
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </nav>
+                                );
+                            })}
                         </div>
-                    </div>
+                    )}
+
+                    {totalPages > 1 && (
+                        <div className="grid md:grid-cols-12 grid-cols-1 mt-8">
+                            <div className="md:col-span-12 text-center">
+                                <nav aria-label="Page navigation example">
+                                    <ul className="inline-flex items-center -space-x-px">
+                                        {/* Previous button */}
+                                        <li>
+                                            <button
+                                                onClick={() => handlePageChange(currentPage - 1)}
+                                                disabled={currentPage === 1}
+                                                className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-white dark:bg-slate-900 rounded-s-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <i className="mdi mdi-chevron-left text-[20px] rtl:rotate-180 rtl:-mt-1"></i>
+                                            </button>
+                                        </li>
+
+                                        {/* Page numbers */}
+                                        {getPageNumbers().map((pageNumber) => (
+                                            <li key={pageNumber}>
+                                                <button
+                                                    onClick={() => handlePageChange(pageNumber)}
+                                                    className={
+                                                        currentPage === pageNumber
+                                                            ? "z-10 w-9 h-9 inline-flex text-sm justify-center items-center text-white bg-amber-400 border border-amber-400"
+                                                            : "w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 hover:text-white bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400"
+                                                    }
+                                                    aria-current={currentPage === pageNumber ? "page" : undefined}
+                                                >
+                                                    {pageNumber}
+                                                </button>
+                                            </li>
+                                        ))}
+
+                                        {/* Next button */}
+                                        <li>
+                                            <button
+                                                onClick={() => handlePageChange(currentPage + 1)}
+                                                disabled={currentPage === totalPages}
+                                                className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-white dark:bg-slate-900 rounded-e-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <i className="mdi mdi-chevron-right text-[20px] rtl:rotate-180 rtl:-mt-1"></i>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
             <Footer />

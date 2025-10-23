@@ -1,15 +1,42 @@
-import express, { Response } from 'express';
+import express, { Request, Response } from 'express';
 import { Category } from '../models/category';
-import { AuthRequest } from '../middleware/auth';
+import { AuthRequest, requireAuth } from '../middleware/auth';
 
 const router = express.Router();
+
+/**
+ * GET /api/categories/public
+ * Get all categories (PUBLIC - no authentication required)
+ * Returns all categories sorted alphabetically for blog page display
+ * @access Public
+ */
+router.get('/public', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const categories = (await (Category as any).find()
+      .sort({ name: 1 })) as any; // Sort alphabetically by name
+
+    res.status(200).json({
+      success: true,
+      count: categories.length,
+      data: categories,
+    });
+  } catch (error) {
+    console.error('Error fetching public categories:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch categories',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
 
 /**
  * GET /api/categories
  * Get all categories
  * @access Protected
  */
-router.get('/', async (_req: AuthRequest, res: Response): Promise<void> => {
+router.get('/', requireAuth, async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const categories = (await (Category as any).find()
@@ -35,7 +62,7 @@ router.get('/', async (_req: AuthRequest, res: Response): Promise<void> => {
  * Get single category by ID
  * @access Protected
  */
-router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -69,7 +96,7 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
  * Create new category
  * @access Protected
  */
-router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, description } = req.body;
 
@@ -131,7 +158,7 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
  * Update category
  * @access Protected
  */
-router.put('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
@@ -207,7 +234,7 @@ router.put('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
  * Delete category
  * @access Protected
  */
-router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
