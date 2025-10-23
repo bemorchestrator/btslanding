@@ -39,6 +39,34 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response): Promise<vo
 });
 
 /**
+ * GET /api/articles/public
+ * Get all published articles (PUBLIC - no authentication required)
+ * Only returns articles with status 'published' sorted by creation date
+ * Used for blog page display
+ * @access Public
+ */
+router.get('/public', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const articles = (await (Article as any).find({ status: 'published' })
+      .sort({ createdAt: -1 })) as any;
+
+    res.status(200).json({
+      success: true,
+      count: articles.length,
+      data: articles,
+    });
+  } catch (error) {
+    console.error('Error fetching public articles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch articles',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
  * GET /api/articles/slug/:slug
  * Get single article by slug (PUBLIC - no authentication)
  * Only returns published articles

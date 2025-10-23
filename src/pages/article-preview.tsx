@@ -4,13 +4,14 @@ import { Loader2 } from 'lucide-react';
 import { Helmet } from 'react-helmet';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
-import * as articleService from '../services/articleService';
-import type { Article, ArticleContent } from '../types/admin';
+import { getPublishedArticleBySlug, getPublicCategories } from '../services/publicArticleService';
+import type { Article, ArticleContent, Category } from '../types/admin';
 
 export default function ArticlePreview(): JSX.Element {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [article, setArticle] = useState<Article | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,12 +20,16 @@ export default function ArticlePreview(): JSX.Element {
     document.documentElement.classList.add('dark');
     document.documentElement.classList.remove('light');
 
-    const fetchArticle = async (articleSlug: string) => {
+    const fetchData = async (articleSlug: string) => {
       try {
         setLoading(true);
         setError(null);
-        const data = await articleService.getArticleBySlug(articleSlug);
-        setArticle(data);
+        const [articleData, categoriesData] = await Promise.all([
+          getPublishedArticleBySlug(articleSlug),
+          getPublicCategories()
+        ]);
+        setArticle(articleData);
+        setCategories(categoriesData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Article not found');
         console.error('Error fetching article:', err);
@@ -38,7 +43,7 @@ export default function ArticlePreview(): JSX.Element {
     };
 
     if (slug) {
-      fetchArticle(slug);
+      fetchData(slug);
     } else {
       navigate('/');
     }
@@ -101,6 +106,11 @@ export default function ArticlePreview(): JSX.Element {
     const tmp = document.createElement('DIV');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
+  };
+
+  const getCategoryName = (categoryId: string): string => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : 'Uncategorized';
   };
 
   const getMetaDescription = (article: Article): string => {
@@ -213,12 +223,9 @@ export default function ArticlePreview(): JSX.Element {
           <div className="md:flex justify-center">
             <div className="lg:w-2/3 md:w-4/5">
               {/* Category Badge */}
-              <Link
-                to={`/blog?category=${article.categoryId}`}
-                className="bg-amber-400 text-white text-[12px] font-semibold px-2.5 py-0.5 rounded h-5 inline-block"
-              >
-                Article
-              </Link>
+              <span className="bg-amber-400/10 text-amber-500 dark:text-amber-400 text-[12px] font-semibold px-2.5 py-0.5 rounded inline-block whitespace-nowrap overflow-hidden text-ellipsis">
+                {getCategoryName(article.categoryId)}
+              </span>
 
               {/* Title */}
               <h1 className="md:text-4xl text-3xl font-bold md:tracking-normal tracking-normal md:leading-normal leading-normal mt-3">
@@ -259,10 +266,87 @@ export default function ArticlePreview(): JSX.Element {
                 </div>
               ) : (
                 // New: Rich HTML content from WYSIWYG editor
-                <div
-                  className="prose prose-lg prose-invert max-w-none text-slate-300"
-                  dangerouslySetInnerHTML={{ __html: article.content }}
-                />
+                <>
+                  <style>{`
+                    .article-content blockquote {
+                      position: relative;
+                      padding: 2rem 2.5rem;
+                      margin: 2rem 0;
+                      background: linear-gradient(135deg, rgba(251, 191, 36, 0.05) 0%, rgba(251, 191, 36, 0.02) 100%);
+                      border-radius: 0.5rem;
+                      font-size: 1.25rem;
+                      line-height: 1.8;
+                      font-style: italic;
+                      font-weight: 400;
+                      color: #f1f5f9;
+                      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                      transition: all 0.3s ease;
+                    }
+
+                    .article-content blockquote:hover {
+                      transform: translateX(4px);
+                      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                    }
+
+                    .article-content blockquote::before {
+                      content: '"';
+                      position: absolute;
+                      top: -10px;
+                      left: -2px;
+                      font-size: 4rem;
+                      color: #fbbf24;
+                      font-family: Georgia, serif;
+                      font-weight: bold;
+                      line-height: 1;
+                    }
+
+                    .article-content blockquote::after {
+                      content: '"';
+                      position: absolute;
+                      bottom: -30px;
+                      right: 20px;
+                      font-size: 4rem;
+                      color: #fbbf24;
+                      font-family: Georgia, serif;
+                      font-weight: bold;
+                      line-height: 1;
+                      transform: rotate(180deg);
+                    }
+
+                    .article-content blockquote p {
+                      position: relative;
+                      z-index: 1;
+                      margin: 0;
+                      padding-left: 1.5rem;
+                    }
+
+                    .article-content blockquote p:first-child::first-letter {
+                      font-size: 1.5em;
+                      font-weight: 500;
+                      color: #fbbf24;
+                      float: left;
+                      line-height: 1;
+                      margin-right: 0.1em;
+                      margin-top: -0.1em;
+                    }
+
+                    /* Link styling in articles */
+                    .article-content a {
+                      color: #fbbf24 !important;
+                      text-decoration: none;
+                      transition: all 0.2s ease;
+                    }
+
+                    .article-content a:hover {
+                      color: #fcd34d !important;
+                      text-decoration: underline;
+                    }
+                  `}</style>
+                  <div
+                    className="article-content prose prose-lg prose-invert max-w-none text-slate-300"
+                    dangerouslySetInnerHTML={{ __html: article.content }}
+                  />
+                </>
               )}
             </div>
           </div>
@@ -271,14 +355,5 @@ export default function ArticlePreview(): JSX.Element {
 
       <Footer />
     </>
-  );
-}
-
-// Temporary Link component (since we're not using react-router Link here)
-function Link({ to, children, className }: { to: string; children: React.ReactNode; className?: string }) {
-  return (
-    <a href={to} className={className}>
-      {children}
-    </a>
   );
 }
