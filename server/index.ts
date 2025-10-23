@@ -7,7 +7,9 @@ import axios from 'axios';
 import authRoutes from './routes/auth';
 import categoryRoutes from './routes/categories';
 import articleRoutes from './routes/articles';
+import authorRoutes from './routes/authors';
 import { connectDatabase } from './config/database';
+import { Article } from './models/article';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
@@ -84,6 +86,81 @@ interface ContactFormData {
   website?: string;
 }
 
+// Sitemap route - Generate XML sitemap dynamically
+app.get('/sitemap.xml', async (_req: Request, res: Response): Promise<void> => {
+  console.log('🔥 SITEMAP ROUTE HIT!');
+  try {
+    const baseUrl = process.env.SITE_URL || 'http://localhost:3000';
+
+    // Fetch all published articles
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const articles = await (Article as any)
+      .find({ status: 'published' })
+      .sort({ updatedAt: -1 })
+      .select('slug updatedAt createdAt')
+      .lean();
+
+    // Static pages
+    const staticPages = [
+      { url: '/', priority: '1.0', changefreq: 'weekly' },
+      { url: '/blog', priority: '0.9', changefreq: 'daily' },
+      { url: '/aboutus', priority: '0.7', changefreq: 'monthly' },
+      { url: '/services', priority: '0.8', changefreq: 'monthly' },
+      { url: '/pricing', priority: '0.8', changefreq: 'monthly' },
+      { url: '/contact', priority: '0.7', changefreq: 'monthly' },
+    ];
+
+    // Build XML
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    // Add static pages
+    staticPages.forEach(page => {
+      xml += '  <url>\n';
+      xml += `    <loc>${baseUrl}${page.url}</loc>\n`;
+      xml += `    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\n`;
+      xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
+      xml += `    <priority>${page.priority}</priority>\n`;
+      xml += '  </url>\n';
+    });
+
+    // Add articles
+    articles.forEach((article: { slug: string; updatedAt?: Date; createdAt: Date }) => {
+      const lastmod = (article.updatedAt || article.createdAt).toISOString().split('T')[0];
+      xml += '  <url>\n';
+      xml += `    <loc>${baseUrl}/articles/${article.slug}</loc>\n`;
+      xml += `    <lastmod>${lastmod}</lastmod>\n`;
+      xml += `    <changefreq>monthly</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
+      xml += '  </url>\n';
+    });
+
+    xml += '</urlset>';
+
+    res.header('Content-Type', 'application/xml');
+    res.header('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+// Robots.txt route
+app.get('/robots.txt', (_req: Request, res: Response): void => {
+  const baseUrl = process.env.SITE_URL || 'http://localhost:3000';
+  const robotsTxt = `# Better Teaching Solutions - Robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+  res.header('Content-Type', 'text/plain');
+  res.send(robotsTxt);
+});
+
 // Mount auth routes
 app.use('/api/auth', authRoutes);
 
@@ -92,6 +169,9 @@ app.use('/api/categories', categoryRoutes);
 
 // Mount article routes (auth handled per-route inside articles.ts)
 app.use('/api/articles', articleRoutes);
+
+// Mount author routes (auth handled per-route inside authors.ts)
+app.use('/api/authors', authorRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {

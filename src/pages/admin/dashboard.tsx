@@ -5,6 +5,7 @@ import { DashboardOverview } from '../../components/admin/DashboardOverview';
 import { CategoriesView } from '../../components/admin/CategoriesView';
 import { ArticlesView } from '../../components/admin/ArticlesView';
 import { BlogPostBuilder } from '../../components/admin/BlogPostBuilder';
+import { AuthorView } from '../../components/admin/AuthorView';
 import { useAuth } from '../../contexts/AuthContext';
 import * as categoryService from '../../services/categoryService';
 import * as articleService from '../../services/articleService';
@@ -12,7 +13,7 @@ import type { Category, Article } from '../../types/admin';
 
 export default function AdminDashboard() {
   const { logout } = useAuth();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'categories' | 'articles' | 'blog-builder'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'categories' | 'articles' | 'blog-builder' | 'author'>('dashboard');
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [selectedCategoryForNew, setSelectedCategoryForNew] = useState<string>('');
   const [categoriesCount, setCategoriesCount] = useState<number>(0);
@@ -140,6 +141,9 @@ export default function AdminDashboard() {
             onCancel={handleCancelBuilder}
             onArticlesChange={handleArticlesChange}
           />
+        )}
+        {currentView === 'author' && (
+          <AuthorView />
         )}
       </DashboardLayout>
     </ProtectedRoute>

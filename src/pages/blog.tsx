@@ -5,17 +5,23 @@ import bgImage from "../assets/images/bg/btshome1.jpg"
 import Footer from "../components/footer";
 import Switcher from "../components/switcher";
 import NavLight from "../components/navlight";
+import { Breadcrumb } from "../components/Breadcrumb";
 
 import { getPublishedArticles, getPublicCategories } from "../services/publicArticleService";
-import type { Article, Category } from "../types/admin";
+import { getAuthors } from "../services/authorService";
+import type { Article, Category, Author } from "../types/admin";
 import { FiClock, FiCalendar } from '../assets/icons/vander'
 
 // Default images
 import defaultBlogImage from "../assets/images/blog/1.jpg";
 
+// BTS logo fallback (public folder)
+const btsLogo = "/btsolutions.png";
+
 export default function Blog(): JSX.Element {
     const [articles, setArticles] = useState<Article[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [authors, setAuthors] = useState<Author[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
@@ -27,17 +33,19 @@ export default function Blog(): JSX.Element {
         document.documentElement.classList.remove('light');
     }, []);
 
-    // Fetch articles and categories when page loads
+    // Fetch articles, categories, and authors when page loads
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const [articlesData, categoriesData] = await Promise.all([
+                const [articlesData, categoriesData, authorsData] = await Promise.all([
                     getPublishedArticles(),
-                    getPublicCategories()
+                    getPublicCategories(),
+                    getAuthors()
                 ]);
                 setArticles(articlesData);
                 setCategories(categoriesData);
+                setAuthors(authorsData);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching blog data:', err);
@@ -54,6 +62,24 @@ export default function Blog(): JSX.Element {
     const getCategoryName = (categoryId: string): string => {
         const category = categories.find(cat => cat.id === categoryId);
         return category ? category.name : 'Uncategorized';
+    };
+
+    // Helper: Get author info from name
+    const getAuthorInfo = (authorName: string): { name: string; profilePicture: string } => {
+        const author = authors.find(a => a.name === authorName);
+        if (author) {
+            // Found author in database, use their profile picture
+            return {
+                name: author.name,
+                profilePicture: author.profilePicture
+            };
+        } else {
+            // Custom/guest author - use BTS logo as fallback
+            return {
+                name: authorName,
+                profilePicture: btsLogo
+            };
+        }
     };
 
     // Helper: Calculate reading time
@@ -105,12 +131,6 @@ export default function Blog(): JSX.Element {
                         <div>
                             <h5 className="md:text-4xl text-3xl md:leading-normal leading-normal tracking-wider font-semibold text-white mb-0">Latest Blogs & News</h5>
                         </div>
-
-                        <ul className="tracking-[0.5px] mb-0 inline-block mt-5">
-                            <li className="inline-block capitalize text-[15px] font-medium duration-500 ease-in-out text-white/50 hover:text-white"><Link to="/">Better Teaching Solutions</Link></li>
-                            <li className="inline-block text-base text-white/50 mx-0.5 ltr:rotate-0 rtl:rotate-180"><i className="mdi mdi-chevron-right"></i></li>
-                            <li className="inline-block capitalize text-[15px] font-medium duration-500 ease-in-out text-white" aria-current="page">Blog</li>
-                        </ul>
                     </div>
                 </div>
             </section>
@@ -124,6 +144,14 @@ export default function Blog(): JSX.Element {
 
             <section className="relative md:py-24 py-16">
                 <div className="container relative">
+                    {/* Breadcrumb */}
+                    <Breadcrumb
+                        items={[
+                            { label: 'Home', href: '/' },
+                            { label: 'Blog' },
+                        ]}
+                    />
+
                     {loading ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
@@ -145,6 +173,7 @@ export default function Blog(): JSX.Element {
                                 const formattedDate = formatDate(article.createdAt);
                                 const articleImage = article.featuredImage || defaultBlogImage;
                                 const articleSlug = article.slug || article.id;
+                                const authorInfo = getAuthorInfo(article.author);
 
                                 return (
                                     <div className="relative bg-white dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={article.id}>
@@ -183,9 +212,17 @@ export default function Blog(): JSX.Element {
                                             <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800">
                                                 <div className="flex items-center flex-shrink-0">
                                                     <div className="h-7 w-7 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200">
-                                                        <img src="/btsolutions.png" className="h-4 w-4 object-contain" alt="BTS Logo" />
+                                                        <img
+                                                            src={authorInfo.profilePicture}
+                                                            className={`${authorInfo.profilePicture === btsLogo ? 'h-4 w-4 object-contain' : 'h-full w-full object-cover'}`}
+                                                            alt={authorInfo.name}
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = btsLogo;
+                                                                (e.target as HTMLImageElement).className = 'h-4 w-4 object-contain';
+                                                            }}
+                                                        />
                                                     </div>
-                                                    <span className="ml-2 text-slate-400 text-sm">{article.author}</span>
+                                                    <span className="ml-2 text-slate-400 text-sm">{authorInfo.name}</span>
                                                 </div>
                                                 <div className="flex items-center text-slate-400 text-sm flex-shrink-0 ml-2">
                                                     <FiCalendar className="h-4 w-4" />
