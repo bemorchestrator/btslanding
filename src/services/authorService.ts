@@ -85,10 +85,10 @@ export async function getAuthor(id: string): Promise<Author> {
 
 /**
  * POST create new author
- * @param author - Author data (without id and timestamps)
+ * @param author - Author data (without id, timestamps, and slug - slug is auto-generated)
  * @returns Promise<Author>
  */
-export async function createAuthor(author: Omit<Author, 'id' | 'createdAt' | 'updatedAt'>): Promise<Author> {
+export async function createAuthor(author: Omit<Author, 'id' | 'createdAt' | 'updatedAt' | 'slug'>): Promise<Author> {
   try {
     const response = await fetch(API_BASE_URL, {
       method: 'POST',
@@ -106,10 +106,10 @@ export async function createAuthor(author: Omit<Author, 'id' | 'createdAt' | 'up
 /**
  * PUT update existing author
  * @param id - Author ID
- * @param author - Updated author data (partial)
+ * @param author - Updated author data (partial, slug is auto-generated from name)
  * @returns Promise<Author>
  */
-export async function updateAuthor(id: string, author: Partial<Omit<Author, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Author> {
+export async function updateAuthor(id: string, author: Partial<Omit<Author, 'id' | 'createdAt' | 'updatedAt' | 'slug'>>): Promise<Author> {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: 'PUT',

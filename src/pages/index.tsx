@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Helmet } from "react-helmet";
 
 import Navbar from "../components/navbar";
 import AboutThree from "../components/aboutThree";
@@ -42,6 +43,53 @@ export default function Index(): JSX.Element {
 
     return (
         <>
+            <Helmet>
+                {/* Primary Meta Tags */}
+                <title>Better Teaching Solutions - Teach More, Stress Less</title>
+                <meta name="title" content="Better Teaching Solutions - Teach More, Stress Less" />
+                <meta name="description" content="Stop wasting hours on lesson plans and paperwork. Our AI-powered tools help Filipino teachers plan faster, grade smarter, and focus more on real teaching." />
+                <link rel="canonical" href="https://betterteachingsolutions.com/" />
+
+                {/* Open Graph / Facebook */}
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://betterteachingsolutions.com/" />
+                <meta property="og:title" content="Better Teaching Solutions - Teach More, Stress Less" />
+                <meta property="og:description" content="Stop wasting hours on lesson plans and paperwork. Our AI-powered tools help Filipino teachers plan faster, grade smarter, and focus more on real teaching." />
+                <meta property="og:image" content="https://betterteachingsolutions.com/btsolutions.png" />
+                <meta property="og:site_name" content="Better Teaching Solutions" />
+
+                {/* Twitter */}
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:url" content="https://betterteachingsolutions.com/" />
+                <meta property="twitter:title" content="Better Teaching Solutions - Teach More, Stress Less" />
+                <meta property="twitter:description" content="Stop wasting hours on lesson plans and paperwork. Our AI-powered tools help Filipino teachers plan faster, grade smarter, and focus more on real teaching." />
+                <meta property="twitter:image" content="https://betterteachingsolutions.com/btsolutions.png" />
+
+                {/* Robots */}
+                <meta name="robots" content="index, follow" />
+
+                {/* Organization Schema */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "Organization",
+                        "name": "Better Teaching Solutions",
+                        "url": "https://betterteachingsolutions.com",
+                        "logo": "https://betterteachingsolutions.com/btsolutions.png",
+                        "description": "Stop wasting hours on lesson plans and paperwork. Our AI-powered tools help Filipino teachers plan faster, grade smarter, and focus more on real teaching. From SF forms to classroom management and AI generators, our tools are designed to make your job easier.",
+                        "email": "support@betterteachingsolutions.com",
+                        "contactPoint": {
+                            "@type": "ContactPoint",
+                            "contactType": "customer support",
+                            "email": "support@betterteachingsolutions.com"
+                        },
+                        "sameAs": [
+                            "https://www.facebook.com/betterteachingsolutions/"
+                        ]
+                    })}
+                </script>
+            </Helmet>
+
             <Navbar />
             <section className="relative table w-full lg:py-40 md:py-36 pt-36 pb-24 overflow-hidden bg-white dark:bg-slate-900">
                 <div className="container relative z-1">

@@ -6,9 +6,22 @@ import mongoose, { Schema, Document } from 'mongoose';
  */
 export interface ICategory extends Document {
   name: string;
+  slug: string;
   description: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/**
+ * Helper function to generate slug from name
+ */
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_-]+/g, '-')  // Replace spaces, underscores with hyphens
+    .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
 }
 
 /**
@@ -24,6 +37,12 @@ const CategorySchema: Schema = new Schema(
       unique: true,
       minlength: [2, 'Category name must be at least 2 characters'],
       maxlength: [100, 'Category name must not exceed 100 characters'],
+    },
+    slug: {
+      type: String,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
     description: {
       type: String,
@@ -47,8 +66,32 @@ const CategorySchema: Schema = new Schema(
   }
 );
 
+// Pre-save hook to generate slug from name
+CategorySchema.pre('save', async function (next) {
+  // Generate slug if it doesn't exist or if name was modified
+  if (!this.slug || this.isModified('name')) {
+    let slug = generateSlug(String(this.name));
+
+    // Check for duplicate slugs and append number if necessary
+    const existingCategory = await mongoose.model('Category').findOne({ slug, _id: { $ne: this._id } });
+    if (existingCategory) {
+      let counter = 1;
+      let newSlug = `${slug}-${counter}`;
+      while (await mongoose.model('Category').findOne({ slug: newSlug, _id: { $ne: this._id } })) {
+        counter++;
+        newSlug = `${slug}-${counter}`;
+      }
+      slug = newSlug;
+    }
+
+    this.slug = slug;
+  }
+  next();
+});
+
 // Create indexes for better query performance
 CategorySchema.index({ name: 1 });
+CategorySchema.index({ slug: 1 });
 CategorySchema.index({ createdAt: -1 });
 
 /**

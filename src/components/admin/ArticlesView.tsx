@@ -102,7 +102,7 @@ export function ArticlesView({ categories, onCreateArticle, onEditArticle, onArt
 
   const handlePreview = (article: Article) => {
     if (article.slug) {
-      window.open(`/articles/${article.slug}`, '_blank');
+      window.open(`/blog/${article.slug}`, '_blank');
     }
   };
 

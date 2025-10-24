@@ -15,7 +15,10 @@
       "Bash(pnpm run lint:*)",
       "Bash(pnpm run:*)",
       "Bash(cat:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: improve draft indicator state management and add icons to action buttons\n\n- Add local state tracking for draft changes to provide immediate UI feedback\n- Import Save and Upload icons from lucide-react\n- Update draft indicator to use local state for instant visual response\n- Clear draft indicator immediately when discarding draft changes\n- Maintain WordPress-style draft/publish workflow\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(pnpm list:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
