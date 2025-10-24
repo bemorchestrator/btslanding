@@ -122,9 +122,20 @@ function AlertDialogAction({
   className,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Action>) {
+  // Check if this is a delete button (red background)
+  const isDeleteButton = className?.includes('bg-red-600');
+  const deleteStyle = isDeleteButton ? {
+    backgroundColor: '#dc2626',
+    borderColor: '#dc2626',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    color: 'white',
+  } : {};
+
   return (
     <AlertDialogPrimitive.Action
       className={cn(buttonVariants(), className)}
+      style={deleteStyle}
       {...props}
     />
   );
@@ -134,9 +145,19 @@ function AlertDialogCancel({
   className,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
+  // Force border styles for cancel button
+  const cancelStyle = {
+    backgroundColor: 'transparent',
+    borderColor: '#3a3a3a',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    color: 'white',
+  };
+
   return (
     <AlertDialogPrimitive.Cancel
       className={cn(buttonVariants({ variant: "outline" }), className)}
+      style={cancelStyle}
       {...props}
     />
   );

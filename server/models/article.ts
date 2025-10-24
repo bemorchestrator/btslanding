@@ -21,6 +21,10 @@ export interface IArticle extends Document {
   author: string;
   status: 'draft' | 'published';
   featuredImage?: string;
+  // SEO Meta Fields
+  metaTitle?: string;
+  metaDescription?: string;
+  focusKeyword?: string;
   // Draft fields - for saving work-in-progress without affecting published content
   draftTitle?: string;
   draftCategoryId?: mongoose.Types.ObjectId;
@@ -93,6 +97,22 @@ const ArticleSchema: Schema = new Schema(
       type: String,
       trim: true,
     },
+    // SEO Meta Fields
+    metaTitle: {
+      type: String,
+      trim: true,
+      maxlength: [70, 'Meta title should not exceed 70 characters for optimal SEO'],
+    },
+    metaDescription: {
+      type: String,
+      trim: true,
+      maxlength: [160, 'Meta description should not exceed 160 characters for optimal SEO'],
+    },
+    focusKeyword: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Focus keyword should not exceed 100 characters'],
+    },
     // Draft fields - for saving work-in-progress without affecting published content
     draftTitle: {
       type: String,
@@ -129,26 +149,33 @@ const ArticleSchema: Schema = new Schema(
   }
 );
 
-// Pre-save hook to generate slug from title
+// Pre-save hook to generate slug from title or validate custom slug
 ArticleSchema.pre('save', async function (next) {
-  // Generate slug if it doesn't exist or if title was modified
-  if (!this.slug || this.isModified('title')) {
-    let slug = generateSlug(String(this.title));
-
-    // Check for duplicate slugs and append number if necessary
-    const existingArticle = await mongoose.model('Article').findOne({ slug, _id: { $ne: this._id } });
-    if (existingArticle) {
-      let counter = 1;
-      let newSlug = `${slug}-${counter}`;
-      while (await mongoose.model('Article').findOne({ slug: newSlug, _id: { $ne: this._id } })) {
-        counter++;
-        newSlug = `${slug}-${counter}`;
-      }
-      slug = newSlug;
-    }
-
-    this.slug = slug;
+  // If slug was manually modified, sanitize it but keep the custom value
+  if (this.isModified('slug') && this.slug) {
+    this.slug = generateSlug(String(this.slug));
   }
+  // Generate slug from title if it doesn't exist
+  else if (!this.slug) {
+    this.slug = generateSlug(String(this.title));
+  }
+  // Auto-regenerate from title if title changed and slug wasn't manually set
+  else if (this.isModified('title') && !this.isModified('slug')) {
+    this.slug = generateSlug(String(this.title));
+  }
+
+  // Check for duplicate slugs and append number if necessary
+  const existingArticle = await mongoose.model('Article').findOne({ slug: this.slug, _id: { $ne: this._id } });
+  if (existingArticle) {
+    let counter = 1;
+    let newSlug = `${this.slug}-${counter}`;
+    while (await mongoose.model('Article').findOne({ slug: newSlug, _id: { $ne: this._id } })) {
+      counter++;
+      newSlug = `${this.slug}-${counter}`;
+    }
+    this.slug = newSlug;
+  }
+
   next();
 });
 
