@@ -19,6 +19,9 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // Admin-specific variants
+        admin: "text-black border-2 border-solid hover:border-[#c49d2f]",
+        adminOutline: "border-2 border-solid bg-transparent text-white hover:bg-[#2a2a2a] hover:text-white",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -46,10 +49,24 @@ function Button({
   }) {
   const Comp = asChild ? Slot : "button";
 
+  // Apply inline styles for admin variants to force colors
+  const adminStyle = variant === "admin" ? {
+    backgroundColor: '#d4af37',
+    borderColor: '#d4af37',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+  } : variant === "adminOutline" ? {
+    backgroundColor: 'transparent',
+    borderColor: '#3a3a3a',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+  } : {};
+
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      style={adminStyle}
       {...props}
     />
   );

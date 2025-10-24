@@ -105,7 +105,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
             <Button
               type="submit"
-              className="w-full bg-[#d4af37] text-black hover:bg-[#c49d2f]"
+              variant="admin"
+              className="w-full"
               disabled={isLoading}
             >
               <LogIn size={20} className="mr-2" />

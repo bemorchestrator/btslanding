@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { ArrowLeft, Loader2, ExternalLink, Eye, X, Trash2, EyeOff, Save, Upload } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Loader2, ExternalLink, Eye, X, Trash2, EyeOff, Save, Upload, ChevronDown, ChevronUp } from 'lucide-react';
 import { RichTextEditor } from './RichTextEditor';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { Article, Category } from '../../types/admin';
+import type { Article, Category, Author } from '../../types/admin';
 import * as articleService from '../../services/articleService';
+import { getAuthors } from '../../services/authorService';
 
 type BlogPostBuilderProps = {
   article: Article | null;
@@ -23,9 +24,44 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
   const [selectedCategory, setSelectedCategory] = useState(article?.draftCategoryId || article?.categoryId || categoryId);
   const [featuredImage, setFeaturedImage] = useState(article?.draftFeaturedImage || article?.featuredImage || '');
   const [content, setContent] = useState(article?.draftContent || article?.content || '');
+  // SEO Meta Fields
+  const [metaTitle, setMetaTitle] = useState(article?.metaTitle || '');
+  const [metaDescription, setMetaDescription] = useState(article?.metaDescription || '');
+  const [focusKeyword, setFocusKeyword] = useState(article?.focusKeyword || '');
+  const [customSlug, setCustomSlug] = useState(article?.slug || '');
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const [isSeoExpanded, setIsSeoExpanded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  // Author management
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [isCustomAuthor, setIsCustomAuthor] = useState(false);
+  const [customAuthorName, setCustomAuthorName] = useState('');
+
+  // Fetch authors on mount
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      try {
+        const data = await getAuthors();
+        setAuthors(data);
+
+        // Check if current author is in the authors list
+        if (author && data.length > 0) {
+          const exists = data.some(a => a.name === author);
+          if (!exists) {
+            // Current author is custom
+            setIsCustomAuthor(true);
+            setCustomAuthorName(author);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching authors:', err);
+      }
+    };
+
+    fetchAuthors();
+  }, [author]);
   const [savedArticleSlug, setSavedArticleSlug] = useState<string | null>(article?.slug || null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [savingAs, setSavingAs] = useState<'draft' | 'published' | null>(null);
@@ -37,6 +73,21 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
 
   // Use local state if available, otherwise derive from props
   const hasDraftChanges = localHasDraftChanges;
+
+  // Handle author selection change
+  const handleAuthorChange = (value: string) => {
+    if (value === 'custom') {
+      setIsCustomAuthor(true);
+      setAuthor(''); // Clear author, will use customAuthorName
+    } else {
+      setIsCustomAuthor(false);
+      setCustomAuthorName('');
+      const selectedAuthor = authors.find(a => a.id === value);
+      if (selectedAuthor) {
+        setAuthor(selectedAuthor.name);
+      }
+    }
+  };
 
   const handleSave = async (saveStatus: 'draft' | 'published', isDraftSave: boolean = false) => {
     try {
@@ -69,9 +120,13 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
         title,
         categoryId: selectedCategory,
         content,
-        author,
+        author: isCustomAuthor ? customAuthorName : author,
         status: saveStatus,
         featuredImage,
+        slug: customSlug.trim() || undefined,
+        metaTitle: metaTitle.trim() || undefined,
+        metaDescription: metaDescription.trim() || undefined,
+        focusKeyword: focusKeyword.trim() || undefined,
         saveDraft: isDraftSave, // Tell backend whether to save as draft only
       };
 
@@ -211,46 +266,47 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
 
   return (
     <div className="h-screen bg-[#0a0a0a] flex flex-col overflow-hidden">
-      {/* Back button and heading - Very top left, no padding */}
-      <div className="flex items-center justify-between p-6">
-        <div className="flex items-center gap-4">
+      {/* Back button and heading - Single row layout */}
+      <div className="flex items-center justify-between p-4 md:p-6 mt-16 md:mt-0">
+        <div className="flex items-center gap-2 md:gap-4">
           <button
             onClick={onCancel}
             disabled={isSaving}
             className="text-gray-400 hover:text-white flex items-center gap-2"
           >
             <ArrowLeft size={18} />
-            Back
           </button>
-          <h1 className="text-white text-xl font-medium">
+          <h1 className="text-white text-base md:text-xl font-medium">
             {article ? 'Edit Article' : 'Add New Article'}
           </h1>
           {article && hasDraftChanges && (
-            <span className="px-2 py-1 bg-amber-900/30 border border-amber-900/50 text-amber-400 text-xs rounded">
+            <span className="hidden lg:inline px-2 py-1 bg-amber-900/30 border border-amber-900/50 text-amber-400 text-xs rounded">
               Draft Changes
             </span>
           )}
         </div>
 
-        {/* Preview Buttons */}
-        <div className="flex items-center gap-3">
+        {/* Preview Buttons - Compact text on mobile, full text on desktop */}
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Preview Changes - Always available */}
           <button
             onClick={() => setIsPreviewOpen(true)}
-            className="text-gray-400 hover:text-white flex items-center gap-2 text-sm"
+            className="text-gray-400 hover:text-white flex items-center gap-1.5 md:gap-2 text-xs md:text-sm"
           >
-            <Eye size={16} />
-            Preview Changes
+            <Eye size={14} className="md:w-4 md:h-4" />
+            <span className="md:hidden">Preview</span>
+            <span className="hidden md:inline">Preview Changes</span>
           </button>
 
           {/* Preview Live - Only if published */}
           {savedArticleSlug && status === 'published' && (
             <button
               onClick={handlePreview}
-              className="text-gray-400 hover:text-white flex items-center gap-2 text-sm"
+              className="text-gray-400 hover:text-white flex items-center gap-1.5 md:gap-2 text-xs md:text-sm"
             >
-              <ExternalLink size={16} />
-              Preview Live
+              <ExternalLink size={14} className="md:w-4 md:h-4" />
+              <span className="md:hidden">Live</span>
+              <span className="hidden md:inline">Preview Live</span>
             </button>
           )}
         </div>
@@ -273,15 +329,225 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
       {/* Main Content - Two Column Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Side - Editor */}
-        <div className="flex-1 px-6 pb-6 overflow-y-auto">
+        <div className="flex-1 px-4 md:px-6 pb-6 overflow-y-auto pb-24 lg:pb-6">
           {/* Title Input */}
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Add title"
-            className="w-full bg-transparent border border-[#505050] text-white text-3xl font-bold placeholder:text-gray-600 focus:outline-none focus:border-2 focus:border-[#3a3a3a] px-4 py-5 mb-6 rounded-lg transition-all"
+            className="w-full bg-transparent border border-[#505050] text-white text-xl md:text-3xl font-bold placeholder:text-gray-600 focus:outline-none focus:border-2 focus:border-[#3a3a3a] px-3 py-2.5 md:px-4 md:py-5 mb-2 rounded-lg transition-all"
           />
+
+          {/* WordPress-style Permalink (URL Slug) */}
+          <div className="mb-4 md:mb-6">
+            {!isEditingSlug ? (
+              <div className="flex items-center gap-2 text-sm flex-wrap">
+                <span className="text-gray-500">Permalink:</span>
+                <span className="text-gray-400">http://localhost:3000/articles/</span>
+                {customSlug ? (
+                  <span className="text-blue-400 font-mono">{customSlug}</span>
+                ) : (
+                  <span className="text-gray-600 italic font-mono">
+                    {title ? title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-') : 'auto-generated'}
+                  </span>
+                )}
+                <button
+                  onClick={() => setIsEditingSlug(true)}
+                  className="text-blue-400 hover:text-blue-300 text-xs underline"
+                >
+                  Edit
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm flex-wrap">
+                <span className="text-gray-500">Permalink:</span>
+                <span className="text-gray-400">http://localhost:3000/articles/</span>
+                <Input
+                  value={customSlug || (title ? title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-') : '')}
+                  onChange={(e) => setCustomSlug(e.target.value)}
+                  onBlur={() => setIsEditingSlug(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === 'Escape') {
+                      setIsEditingSlug(false);
+                    }
+                  }}
+                  autoFocus
+                  className="flex-1 min-w-[200px] bg-[#2a2a2a] border-[#3a3a3a] text-white text-sm font-mono h-7 px-2"
+                />
+                <button
+                  onClick={() => setIsEditingSlug(false)}
+                  className="text-green-400 hover:text-green-300 text-xs px-2 py-1 bg-green-400/10 rounded"
+                >
+                  OK
+                </button>
+                <button
+                  onClick={() => {
+                    setCustomSlug(article?.slug || '');
+                    setIsEditingSlug(false);
+                  }}
+                  className="text-gray-400 hover:text-gray-300 text-xs underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile-only fields - Author, Category, Featured Image */}
+          <div className="lg:hidden space-y-4 mb-6">
+            <div>
+              <label className="text-gray-400 text-sm mb-2 block">Author</label>
+              {isCustomAuthor ? (
+                <div className="space-y-2">
+                  <Input
+                    value={customAuthorName}
+                    onChange={(e) => setCustomAuthorName(e.target.value)}
+                    placeholder="Guest author name"
+                    className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500"
+                  />
+                  <button
+                    onClick={() => {
+                      setIsCustomAuthor(false);
+                      setCustomAuthorName('');
+                    }}
+                    className="text-xs text-gray-400 hover:text-white"
+                  >
+                    Select from authors list
+                  </button>
+                </div>
+              ) : (
+                <Select value={authors.find(a => a.name === author)?.id || ''} onValueChange={handleAuthorChange}>
+                  <SelectTrigger className="bg-[#2a2a2a] border-[#3a3a3a] text-white">
+                    <SelectValue placeholder="Select author" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#2a2a2a] border-[#3a3a3a]">
+                    {authors.map((author) => (
+                      <SelectItem key={author.id} value={author.id} className="text-white">
+                        {author.name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom" className="text-[#d4af37]">
+                      + Custom (Guest Author)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div>
+              <label className="text-gray-400 text-sm mb-2 block">Category</label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="bg-[#2a2a2a] border-[#3a3a3a] text-white">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#2a2a2a] border-[#3a3a3a]">
+                  {categories.map((category) => (
+                    <SelectItem
+                      key={category.id}
+                      value={category.id}
+                      className="text-white focus:bg-[#3a3a3a] focus:text-white"
+                    >
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-gray-400 text-sm mb-2 block">Featured Image URL</label>
+              <Input
+                value={featuredImage}
+                onChange={(e) => setFeaturedImage(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500"
+              />
+            </div>
+
+            {/* SEO Settings for Mobile - Collapsible */}
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden">
+              <button
+                onClick={() => setIsSeoExpanded(!isSeoExpanded)}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-[#2a2a2a] transition-colors"
+              >
+                <div>
+                  <h3 className="text-white text-sm font-semibold">SEO Settings</h3>
+                  <p className="text-gray-500 text-xs mt-0.5">
+                    {metaTitle || metaDescription || focusKeyword
+                      ? 'Configured'
+                      : 'Optional: Customize search appearance'}
+                  </p>
+                </div>
+                {isSeoExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                )}
+              </button>
+
+              {isSeoExpanded && (
+                <div className="px-4 pb-4 space-y-4 border-t border-[#2a2a2a]">
+                  <p className="text-gray-500 text-xs pt-4">Customize how this article appears in search results</p>
+
+                  {/* Meta Title */}
+                  <div>
+                    <label className="text-gray-400 text-xs mb-1 block">
+                      Meta Title
+                      <span className="text-gray-600 ml-1">(optional)</span>
+                    </label>
+                    <Input
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value)}
+                      placeholder={`${title || 'Article title'} | Better Teaching Solutions`}
+                      maxLength={70}
+                      className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-600 text-sm"
+                    />
+                    <p className="text-gray-600 text-xs mt-1">
+                      {metaTitle.length}/70 characters
+                      {metaTitle.length === 0 && <span className="ml-2 text-gray-500">• Falls back to article title</span>}
+                    </p>
+                  </div>
+
+                  {/* Meta Description */}
+                  <div>
+                    <label className="text-gray-400 text-xs mb-1 block">
+                      Meta Description
+                      <span className="text-gray-600 ml-1">(optional)</span>
+                    </label>
+                    <textarea
+                      value={metaDescription}
+                      onChange={(e) => setMetaDescription(e.target.value)}
+                      placeholder="Brief summary shown in search results..."
+                      maxLength={160}
+                      rows={3}
+                      className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-md text-white placeholder:text-gray-600 text-sm px-3 py-2 resize-none"
+                    />
+                    <p className="text-gray-600 text-xs mt-1">
+                      {metaDescription.length}/160 characters
+                      {metaDescription.length === 0 && <span className="ml-2 text-gray-500">• Auto-generated from content</span>}
+                    </p>
+                  </div>
+
+                  {/* Focus Keyword */}
+                  <div>
+                    <label className="text-gray-400 text-xs mb-1 block">
+                      Focus Keyword
+                      <span className="text-gray-600 ml-1">(optional)</span>
+                    </label>
+                    <Input
+                      value={focusKeyword}
+                      onChange={(e) => setFocusKeyword(e.target.value)}
+                      placeholder="e.g., classroom management philippines"
+                      maxLength={100}
+                      className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-600 text-sm"
+                    />
+                    <p className="text-gray-600 text-xs mt-1">
+                      Target search term for this article
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Rich Text Editor */}
           <RichTextEditor
@@ -291,8 +557,8 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
           />
         </div>
 
-        {/* Right Sidebar - WordPress Style */}
-        <div className="w-80 border-l border-[#2a2a2a] p-6 space-y-6 overflow-y-auto flex-shrink-0">
+        {/* Right Sidebar - WordPress Style - Hidden on mobile */}
+        <div className="hidden lg:flex w-80 border-l border-[#2a2a2a] p-6 space-y-6 overflow-y-auto flex-shrink-0 flex-col">
           {/* Publish Section */}
           <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
             <h3 className="text-white text-sm font-semibold mb-4">Publish</h3>
@@ -318,7 +584,8 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
               <Button
                 onClick={() => handleSave('published', false)}
                 disabled={isSaving}
-                className="w-full bg-[#d4af37] text-black hover:bg-[#c49d2f] font-medium"
+                variant="admin"
+                className="w-full font-medium"
               >
                 {savingAs === 'published' && isSaving ? (
                   <>
@@ -395,12 +662,106 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
           {/* Author */}
           <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
             <h3 className="text-white text-sm font-semibold mb-4">Author</h3>
-            <Input
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="Author name"
-              className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500 text-sm"
-            />
+            {isCustomAuthor ? (
+              <div className="space-y-2">
+                <Input
+                  value={customAuthorName}
+                  onChange={(e) => setCustomAuthorName(e.target.value)}
+                  placeholder="Guest author name"
+                  className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500 text-sm"
+                />
+                <button
+                  onClick={() => {
+                    setIsCustomAuthor(false);
+                    setCustomAuthorName('');
+                  }}
+                  className="text-xs text-gray-400 hover:text-white"
+                >
+                  Select from authors list
+                </button>
+              </div>
+            ) : (
+              <Select value={authors.find(a => a.name === author)?.id || ''} onValueChange={handleAuthorChange}>
+                <SelectTrigger className="bg-[#2a2a2a] border-[#3a3a3a] text-white">
+                  <SelectValue placeholder="Select author" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#2a2a2a] border-[#3a3a3a]">
+                  {authors.map((author) => (
+                    <SelectItem key={author.id} value={author.id} className="text-white">
+                      {author.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom" className="text-[#d4af37]">
+                    + Custom (Guest Author)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {/* SEO Settings */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
+            <h3 className="text-white text-sm font-semibold mb-2">SEO Settings</h3>
+            <p className="text-gray-500 text-xs mb-4">Optional: Customize how this article appears in search results</p>
+
+            <div className="space-y-4">
+              {/* Meta Title */}
+              <div>
+                <label className="text-gray-400 text-xs mb-1 block">
+                  Meta Title
+                  <span className="text-gray-600 ml-1">(optional)</span>
+                </label>
+                <Input
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  placeholder={`${title || 'Article title'} | Better Teaching Solutions`}
+                  maxLength={70}
+                  className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-600 text-sm"
+                />
+                <p className="text-gray-600 text-xs mt-1">
+                  {metaTitle.length}/70 characters
+                  {metaTitle.length === 0 && <span className="ml-2 text-gray-500">• Falls back to article title</span>}
+                </p>
+              </div>
+
+              {/* Meta Description */}
+              <div>
+                <label className="text-gray-400 text-xs mb-1 block">
+                  Meta Description
+                  <span className="text-gray-600 ml-1">(optional)</span>
+                </label>
+                <textarea
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  placeholder="Brief summary shown in search results..."
+                  maxLength={160}
+                  rows={3}
+                  className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-md text-white placeholder:text-gray-600 text-sm px-3 py-2 resize-none"
+                />
+                <p className="text-gray-600 text-xs mt-1">
+                  {metaDescription.length}/160 characters
+                  {metaDescription.length === 0 && <span className="ml-2 text-gray-500">• Auto-generated from content</span>}
+                </p>
+              </div>
+
+              {/* Focus Keyword */}
+              <div>
+                <label className="text-gray-400 text-xs mb-1 block">
+                  Focus Keyword
+                  <span className="text-gray-600 ml-1">(optional)</span>
+                </label>
+                <Input
+                  value={focusKeyword}
+                  onChange={(e) => setFocusKeyword(e.target.value)}
+                  placeholder="e.g., classroom management philippines"
+                  maxLength={100}
+                  className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-600 text-sm"
+                />
+                <p className="text-gray-600 text-xs mt-1">
+                  Target search term for this article
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Article Actions - Only for existing articles */}
@@ -446,6 +807,35 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
         </div>
       </div>
 
+      {/* Mobile Floating Action Buttons - Only visible on mobile */}
+      <div className="md:hidden fixed bottom-6 right-4 flex flex-col gap-3 z-30">
+        <Button
+          onClick={() => handleSave(status, true)}
+          disabled={isSaving}
+          className="bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] shadow-lg rounded-full w-14 h-14 p-0 flex items-center justify-center"
+          title="Save Draft"
+        >
+          {isSaving && savingAs === status ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : (
+            <Save size={20} />
+          )}
+        </Button>
+        <Button
+          onClick={() => handleSave(status === 'draft' ? 'published' : status)}
+          disabled={isSaving}
+          variant="admin"
+          className="shadow-lg rounded-full w-14 h-14 p-0 flex items-center justify-center"
+          title={status === 'draft' ? 'Publish' : 'Update Live'}
+        >
+          {isSaving && savingAs !== status ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : (
+            <Upload size={20} />
+          )}
+        </Button>
+      </div>
+
       {/* Preview Modal */}
       {isPreviewOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 overflow-y-auto py-8">
@@ -460,6 +850,58 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
                 <X size={24} />
               </button>
             </div>
+
+            {/* Heading Styles */}
+            <style>{`
+              .preview-content h1 {
+                font-size: 2.25rem;
+                font-weight: 700;
+                margin-top: 2rem;
+                margin-bottom: 1rem;
+                color: #ffffff;
+                line-height: 1.2;
+              }
+              .preview-content h2 {
+                font-size: 1.875rem;
+                font-weight: 700;
+                margin-top: 1.75rem;
+                margin-bottom: 0.875rem;
+                color: #ffffff;
+                line-height: 1.3;
+              }
+              .preview-content h3 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-top: 1.5rem;
+                margin-bottom: 0.75rem;
+                color: #ffffff;
+                line-height: 1.4;
+              }
+              .preview-content h4 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-top: 1.25rem;
+                margin-bottom: 0.625rem;
+                color: #f1f5f9;
+                line-height: 1.4;
+              }
+              .preview-content h5 {
+                font-size: 1.125rem;
+                font-weight: 600;
+                margin-top: 1rem;
+                margin-bottom: 0.5rem;
+                color: #f1f5f9;
+                line-height: 1.5;
+              }
+              .preview-content h6 {
+                font-size: 1rem;
+                font-weight: 600;
+                margin-top: 1rem;
+                margin-bottom: 0.5rem;
+                color: #cbd5e1;
+                line-height: 1.5;
+              }
+            `}</style>
 
             {/* Preview Content - Styled like article-preview page */}
             <div className="p-8">
@@ -492,7 +934,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
               )}
 
               {/* Article Content */}
-              <div className="prose prose-lg prose-invert max-w-none">
+              <div className="prose prose-lg prose-invert max-w-none preview-content">
                 {content ? (
                   <div
                     className="text-slate-300 leading-relaxed"
