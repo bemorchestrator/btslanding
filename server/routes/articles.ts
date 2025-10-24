@@ -142,7 +142,7 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise
  */
 router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { title, categoryId, content, contentBlocks, author, status, featuredImage, slug, metaTitle, metaDescription, focusKeyword } = req.body;
+    const { title, categoryId, content, contentBlocks, author, status, featuredImage, slug, metaTitle, metaDescription, focusKeyword, faqs } = req.body;
 
     // Validate required fields
     if (!title || !categoryId || !author) {
@@ -167,6 +167,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<v
       metaTitle,
       metaDescription,
       focusKeyword,
+      faqs: faqs || [],
     });
 
     res.status(201).json({
@@ -203,7 +204,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<v
 router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { title, categoryId, content, contentBlocks, author, status, featuredImage, slug, metaTitle, metaDescription, focusKeyword, saveDraft, draftTitle, draftCategoryId, draftContent, draftAuthor, draftFeaturedImage } = req.body;
+    const { title, categoryId, content, contentBlocks, author, status, featuredImage, slug, metaTitle, metaDescription, focusKeyword, faqs, saveDraft, draftTitle, draftCategoryId, draftContent, draftAuthor, draftFeaturedImage } = req.body;
 
     // Validate required fields
     if (!title || !categoryId || !author) {
@@ -285,6 +286,10 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise
       }
       if (focusKeyword !== undefined) {
         article.focusKeyword = focusKeyword;
+      }
+      // Update FAQs
+      if (faqs !== undefined) {
+        article.faqs = faqs;
       }
 
       // Clear draft fields since we're publishing the changes

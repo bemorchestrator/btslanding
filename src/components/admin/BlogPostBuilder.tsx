@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, ExternalLink, Eye, X, Trash2, EyeOff, Save, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Loader2, ExternalLink, Eye, X, Trash2, EyeOff, Save, Upload, ChevronDown, ChevronUp, Code, Copy, Check, Plus, Edit, Trash } from 'lucide-react';
 import { RichTextEditor } from './RichTextEditor';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { Article, Category, Author } from '../../types/admin';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import type { Article, Category, Author, FAQ } from '../../types/admin';
 import * as articleService from '../../services/articleService';
 import { getAuthors } from '../../services/authorService';
 
@@ -38,6 +39,17 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
   const [authors, setAuthors] = useState<Author[]>([]);
   const [isCustomAuthor, setIsCustomAuthor] = useState(false);
   const [customAuthorName, setCustomAuthorName] = useState('');
+  // JSON-LD Preview
+  const [isJsonLdDialogOpen, setIsJsonLdDialogOpen] = useState(false);
+  const [jsonLdCopied, setJsonLdCopied] = useState(false);
+  // FAQ Management
+  const [faqs, setFaqs] = useState<FAQ[]>(article?.faqs || []);
+  const [editingFaqIndex, setEditingFaqIndex] = useState<number | null>(null);
+  const [faqQuestion, setFaqQuestion] = useState('');
+  const [faqAnswer, setFaqAnswer] = useState('');
+  const [showFaqForm, setShowFaqForm] = useState(false);
+  // Editor Collapsible State
+  const [isEditorExpanded, setIsEditorExpanded] = useState(true);
 
   // Fetch authors on mount
   useEffect(() => {
@@ -127,6 +139,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
         metaTitle: metaTitle.trim() || undefined,
         metaDescription: metaDescription.trim() || undefined,
         focusKeyword: focusKeyword.trim() || undefined,
+        faqs: faqs.length > 0 ? faqs : undefined,
         saveDraft: isDraftSave, // Tell backend whether to save as draft only
       };
 
@@ -183,7 +196,86 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
 
   const handlePreview = () => {
     if (savedArticleSlug && status === 'published') {
-      window.open(`/articles/${savedArticleSlug}`, '_blank');
+      window.open(`/blog/${savedArticleSlug}`, '_blank');
+    }
+  };
+
+  // Generate JSON-LD preview
+  const generateJsonLd = () => {
+    const siteUrl = window.location.origin;
+    const articleSlug = customSlug || title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+
+    // Auto-generate meta description from content if not provided
+    const getMetaDescription = (): string => {
+      if (metaDescription.trim()) return metaDescription;
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+      return textContent.trim().substring(0, 160) + (textContent.length > 160 ? '...' : '');
+    };
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: metaTitle || title,
+      description: getMetaDescription(),
+      keywords: focusKeyword || undefined,
+      image: featuredImage || `${siteUrl}/btsolutions.png`,
+      author: {
+        '@type': 'Person',
+        name: isCustomAuthor ? customAuthorName : author,
+        url: (() => {
+          const authorObj = authors.find(a => a.name === (isCustomAuthor ? customAuthorName : author));
+          return authorObj?.slug
+            ? `${siteUrl}/author/${authorObj.slug}`
+            : `${siteUrl}/author/${encodeURIComponent(isCustomAuthor ? customAuthorName : author)}`;
+        })(),
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Better Teaching Solutions',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${siteUrl}/btsolutions.png`,
+        },
+      },
+      datePublished: article?.createdAt ? new Date(article.createdAt).toISOString() : new Date().toISOString(),
+      dateModified: article?.updatedAt ? new Date(article.updatedAt).toISOString() : new Date().toISOString(),
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `${siteUrl}/blog/${articleSlug}`,
+      },
+    };
+  };
+
+  // Generate FAQ JSON-LD schema
+  const generateFaqJsonLd = () => {
+    if (faqs.length === 0) return null;
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.answer,
+        },
+      })),
+    };
+  };
+
+  // Copy JSON-LD to clipboard
+  const handleCopyJsonLd = async (type: 'blog' | 'faq') => {
+    try {
+      const jsonLd = type === 'blog' ? generateJsonLd() : generateFaqJsonLd();
+      if (!jsonLd) return;
+      await navigator.clipboard.writeText(JSON.stringify(jsonLd, null, 2));
+      setJsonLdCopied(true);
+      setTimeout(() => setJsonLdCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
@@ -261,6 +353,54 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
       } finally {
         setIsSaving(false);
       }
+    }
+  };
+
+  // FAQ Handlers
+  const handleAddFaq = () => {
+    if (!faqQuestion.trim() || !faqAnswer.trim()) {
+      setError('Both question and answer are required');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    if (editingFaqIndex !== null) {
+      // Update existing FAQ
+      const updatedFaqs = [...faqs];
+      updatedFaqs[editingFaqIndex] = { question: faqQuestion.trim(), answer: faqAnswer.trim() };
+      setFaqs(updatedFaqs);
+      setEditingFaqIndex(null);
+    } else {
+      // Add new FAQ
+      setFaqs([...faqs, { question: faqQuestion.trim(), answer: faqAnswer.trim() }]);
+    }
+
+    // Clear inputs and hide form
+    setFaqQuestion('');
+    setFaqAnswer('');
+    setShowFaqForm(false);
+  };
+
+  const handleEditFaq = (index: number) => {
+    setEditingFaqIndex(index);
+    setFaqQuestion(faqs[index].question);
+    setFaqAnswer(faqs[index].answer);
+    setShowFaqForm(true);
+  };
+
+  const handleCancelEditFaq = () => {
+    setEditingFaqIndex(null);
+    setFaqQuestion('');
+    setFaqAnswer('');
+    setShowFaqForm(false);
+  };
+
+  const handleDeleteFaq = (index: number) => {
+    setFaqs(faqs.filter((_, i) => i !== index));
+    if (editingFaqIndex === index) {
+      setEditingFaqIndex(null);
+      setFaqQuestion('');
+      setFaqAnswer('');
     }
   };
 
@@ -344,7 +484,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
             {!isEditingSlug ? (
               <div className="flex items-center gap-2 text-sm flex-wrap">
                 <span className="text-gray-500">Permalink:</span>
-                <span className="text-gray-400">http://localhost:3000/articles/</span>
+                <span className="text-gray-400">http://localhost:3000/blog/</span>
                 {customSlug ? (
                   <span className="text-blue-400 font-mono">{customSlug}</span>
                 ) : (
@@ -362,7 +502,7 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
             ) : (
               <div className="flex items-center gap-2 text-sm flex-wrap">
                 <span className="text-gray-500">Permalink:</span>
-                <span className="text-gray-400">http://localhost:3000/articles/</span>
+                <span className="text-gray-400">http://localhost:3000/blog/</span>
                 <Input
                   value={customSlug || (title ? title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-') : '')}
                   onChange={(e) => setCustomSlug(e.target.value)}
@@ -549,12 +689,139 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
             </div>
           </div>
 
-          {/* Rich Text Editor */}
-          <RichTextEditor
-            value={content}
-            onChange={setContent}
-            placeholder="Start writing your article..."
-          />
+          {/* Rich Text Editor - Collapsible */}
+          <div className="border-t border-[#2a2a2a] pt-6">
+            <button
+              onClick={() => setIsEditorExpanded(!isEditorExpanded)}
+              className="w-full flex items-center justify-between mb-4 text-left hover:opacity-80 transition-opacity"
+            >
+              <h2 className="text-white text-xl md:text-2xl font-bold">Article Content</h2>
+              {isEditorExpanded ? (
+                <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              )}
+            </button>
+
+            {isEditorExpanded && (
+              <RichTextEditor
+                value={content}
+                onChange={setContent}
+                placeholder="Start writing your article..."
+              />
+            )}
+          </div>
+
+          {/* FAQ Section */}
+          <div className="mt-8 border-t border-[#2a2a2a] pt-8">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h2 className="text-white text-xl md:text-2xl font-bold mb-2">Frequently Asked Questions</h2>
+                <p className="text-gray-400 text-sm">Add FAQs to help readers and improve SEO with rich snippets.</p>
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setFaqQuestion('');
+                  setFaqAnswer('');
+                  setEditingFaqIndex(null);
+                  setShowFaqForm(true);
+                }}
+                variant="outline"
+                className="border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] hover:border-[#4a4a4a] flex-shrink-0"
+              >
+                <Plus size={16} className="mr-2" />
+                Add FAQ
+              </Button>
+            </div>
+
+            {/* FAQ Form - Only show if adding/editing */}
+            {showFaqForm && (
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 mb-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-gray-400 text-sm mb-2 block">Question</label>
+                  <Input
+                    value={faqQuestion}
+                    onChange={(e) => setFaqQuestion(e.target.value)}
+                    placeholder="e.g., What is classroom management?"
+                    className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder:text-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-400 text-sm mb-2 block">Answer</label>
+                  <textarea
+                    value={faqAnswer}
+                    onChange={(e) => setFaqAnswer(e.target.value)}
+                    placeholder="Provide a clear, concise answer..."
+                    rows={4}
+                    className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-md text-white placeholder:text-gray-500 text-sm px-3 py-2 resize-none"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={handleAddFaq}
+                    variant="outline"
+                    className="border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] hover:border-[#4a4a4a]"
+                  >
+                    <Check size={16} className="mr-2" />
+                    Save
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCancelEditFaq}
+                    variant="outline"
+                    className="border-[#3a3a3a] bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a] hover:border-[#4a4a4a]"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+              </div>
+            )}
+
+            {/* FAQ List */}
+            {faqs.length > 0 && (
+              <div className="space-y-3">
+                {faqs.map((faq, index) => (
+                  <div
+                    key={index}
+                    className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 hover:border-[#3a3a3a] transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-white font-semibold mb-2 break-words">{faq.question}</h3>
+                        <p className="text-gray-400 text-sm break-words">{faq.answer}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleEditFaq(index)}
+                          className="text-gray-400 hover:text-white transition-colors"
+                          title="Edit FAQ"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFaq(index)}
+                          className="text-gray-400 hover:text-red-400 transition-colors"
+                          title="Delete FAQ"
+                        >
+                          <Trash size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {faqs.length === 0 && (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                No FAQs added yet. Add your first FAQ using the form above.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Sidebar - WordPress Style - Hidden on mobile */}
@@ -761,6 +1028,22 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
                   Target search term for this article
                 </p>
               </div>
+
+              {/* Preview JSON-LD Button */}
+              <div className="pt-3 border-t border-[#2a2a2a]">
+                <Button
+                  type="button"
+                  onClick={() => setIsJsonLdDialogOpen(true)}
+                  variant="outline"
+                  className="w-full border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] hover:border-[#4a4a4a]"
+                >
+                  <Code size={16} className="mr-2" />
+                  Preview JSON-LD Schema
+                </Button>
+                <p className="text-gray-600 text-xs mt-2">
+                  View the structured data that will be added to this article for search engines
+                </p>
+              </div>
             </div>
           </div>
 
@@ -948,6 +1231,103 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
           </div>
         </div>
       )}
+
+      {/* JSON-LD Preview Dialog */}
+      <Dialog open={isJsonLdDialogOpen} onOpenChange={setIsJsonLdDialogOpen}>
+        <DialogContent className="!w-[70vw] !max-w-[1100px] bg-[#1a1a1a] border-[#2a2a2a] text-white max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Code size={20} />
+              JSON-LD Structured Data Preview
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Info Box */}
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+              <p className="text-blue-300 text-sm leading-relaxed">
+                <strong className="text-blue-200">This is the structured data (JSON-LD)</strong> that will be embedded in your article.
+                It helps Google show rich results in search - like author names, publication dates, and featured images.
+              </p>
+            </div>
+
+            {/* BlogPosting Schema */}
+            <div>
+              <h3 className="text-white text-lg font-semibold mb-3 flex items-center gap-2">
+                BlogPosting Schema
+              </h3>
+              <div className="relative">
+                <pre className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg p-4 overflow-x-auto text-sm text-green-400 font-mono max-h-96 whitespace-pre-wrap break-all">
+{JSON.stringify(generateJsonLd(), null, 2)}
+                </pre>
+
+                {/* Copy Button */}
+                <Button
+                  onClick={() => handleCopyJsonLd('blog')}
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-2 right-2 border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+                >
+                  {jsonLdCopied ? (
+                    <>
+                      <Check size={14} className="mr-1" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} className="mr-1" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* FAQPage Schema */}
+            {faqs.length > 0 && (
+              <div>
+                <h3 className="text-white text-lg font-semibold mb-3 flex items-center gap-2">
+                  FAQPage Schema
+                  <span className="text-xs font-normal text-gray-400">({faqs.length} FAQ{faqs.length !== 1 ? 's' : ''})</span>
+                </h3>
+                <div className="relative">
+                  <pre className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg p-4 overflow-x-auto text-sm text-amber-400 font-mono max-h-96 whitespace-pre-wrap break-all">
+{JSON.stringify(generateFaqJsonLd(), null, 2)}
+                  </pre>
+
+                  {/* Copy Button */}
+                  <Button
+                    onClick={() => handleCopyJsonLd('faq')}
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+                  >
+                    <Copy size={14} className="mr-1" />
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-2 border-t border-[#2a2a2a] pt-4">
+              <Button
+                onClick={() => {
+                  window.open('https://search.google.com/test/rich-results', '_blank');
+                }}
+                variant="outline"
+                className="border-[#3a3a3a] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] hover:border-[#4a4a4a]"
+              >
+                <ExternalLink size={16} className="mr-2" />
+                Test with Google
+              </Button>
+              <p className="text-gray-400 text-sm">
+                Copy the schemas above and paste in Google's Rich Results Test tool
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

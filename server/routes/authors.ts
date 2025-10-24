@@ -22,6 +22,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     const authorsJSON = authors.map((author: {
       _id: unknown;
       name: string;
+      slug: string;
       profilePicture: string;
       bio: string;
       email?: string;
@@ -36,6 +37,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     }) => ({
       id: String(author._id),
       name: author.name,
+      slug: author.slug,
       profilePicture: author.profilePicture,
       bio: author.bio,
       email: author.email,
@@ -68,6 +70,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     res.json({
       id: String(author._id),
       name: author.name,
+      slug: author.slug,
       profilePicture: author.profilePicture,
       bio: author.bio,
       email: author.email,
@@ -117,6 +120,7 @@ router.post('/', requireAuth, async (req: Request, res: Response): Promise<void>
     res.status(201).json({
       id: String(author._id),
       name: author.name,
+      slug: author.slug,
       profilePicture: author.profilePicture,
       bio: author.bio,
       email: author.email,
@@ -177,22 +181,29 @@ router.put('/:id', requireAuth, async (req: Request, res: Response): Promise<voi
     if (email !== undefined) updateData.email = email.trim() || undefined;
     if (social !== undefined) updateData.social = social;
 
-    // Update author
+    // Find author first, then update and save to trigger pre-save hooks
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const author = await (Author as any).findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    const author = await (Author as any).findById(req.params.id);
 
     if (!author) {
       res.status(404).json({ message: 'Author not found' });
       return;
     }
 
+    // Update fields directly (not using Object.assign to ensure Mongoose change tracking works)
+    if (updateData.name !== undefined) author.name = updateData.name;
+    if (updateData.profilePicture !== undefined) author.profilePicture = updateData.profilePicture;
+    if (updateData.bio !== undefined) author.bio = updateData.bio;
+    if (updateData.email !== undefined) author.email = updateData.email;
+    if (updateData.social !== undefined) author.social = updateData.social;
+
+    // Save to trigger pre-save hooks (generates slug from name)
+    await author.save();
+
     res.json({
       id: String(author._id),
       name: author.name,
+      slug: author.slug,
       profilePicture: author.profilePicture,
       bio: author.bio,
       email: author.email,

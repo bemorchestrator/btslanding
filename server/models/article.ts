@@ -25,6 +25,11 @@ export interface IArticle extends Document {
   metaTitle?: string;
   metaDescription?: string;
   focusKeyword?: string;
+  // FAQ Section
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
   // Draft fields - for saving work-in-progress without affecting published content
   draftTitle?: string;
   draftCategoryId?: mongoose.Types.ObjectId;
@@ -112,6 +117,24 @@ const ArticleSchema: Schema = new Schema(
       type: String,
       trim: true,
       maxlength: [100, 'Focus keyword should not exceed 100 characters'],
+    },
+    // FAQ Section
+    faqs: {
+      type: [
+        {
+          question: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+          answer: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+        },
+      ],
+      default: [],
     },
     // Draft fields - for saving work-in-progress without affecting published content
     draftTitle: {

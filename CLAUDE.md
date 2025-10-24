@@ -49,7 +49,9 @@ pnpm test           # Run test suite
 
 **Public Pages** (`src/pages/`):
 - Marketing: index.tsx, aboutus.tsx, pricing.tsx, services.tsx, contact.tsx
-- Blog: blog.tsx (list), blog-detail.tsx (detail), article-preview.tsx (public view)
+- Blog: blog.tsx (list), article-preview.tsx (full article with FAQs, breadcrumbs, author bio)
+- Author: author.tsx (author profile page with articles list)
+- Category: category.tsx (category page with filtered articles)
 
 **Admin System** (`src/pages/admin/`):
 - login.tsx: Authentication page
@@ -62,14 +64,23 @@ pnpm test           # Run test suite
 **Admin Components** (`src/components/admin/`):
 - ProtectedRoute.tsx: Auth guard wrapper
 - DashboardLayout.tsx: Admin shell with navigation
-- BlogPostBuilder.tsx: Block-based content editor
+- BlogPostBuilder.tsx: Rich text editor with Quill.js
+  - Collapsible article content section
+  - FAQ management (add/edit/delete FAQs)
+  - SEO settings (meta tags, focus keyword, custom slug)
+  - JSON-LD preview dialog (shows BlogPosting + FAQPage schemas)
+  - Draft/Publish workflow with "Save Draft" and "Update Live" buttons
 - CategoriesView.tsx, ArticlesView.tsx: CRUD interfaces
+- AuthorView.tsx: Author profile management
+- RichTextEditor.tsx: Quill.js wrapper component
 - Built with Radix UI primitives (Dialog, AlertDialog, Tabs, Toast)
 
 **Service Layer** (`src/services/`):
-- articleService.ts: Article CRUD API client
+- articleService.ts: Article CRUD API client (includes FAQ data)
 - categoryService.ts: Category CRUD API client
-- Both handle JWT tokens and auto-redirect on 401
+- authorService.ts: Author CRUD API client
+- publicArticleService.ts: Public API client for published articles (no auth)
+- All services handle JWT tokens and auto-redirect on 401
 
 **Global State** (`src/contexts/`):
 - AuthContext.tsx: JWT authentication state
@@ -88,15 +99,23 @@ pnpm test           # Run test suite
   - Auto-generates URL slugs from titles (guaranteed unique)
   - Two content formats: plain text and contentBlocks array
   - Status: 'draft' or 'published'
+  - FAQ system: Array of question/answer pairs
+  - SEO fields: metaTitle, metaDescription, focusKeyword
   - Indexes on slug, categoryId, status, createdAt
+- author.ts: Author profiles with name, bio, social links
+  - Auto-generates URL slugs from names (guaranteed unique)
+  - Profile pictures, email, social media links
 - category.ts: Blog categories with name, slug, description
 - user.ts: In-memory admin user (username: "admin", password: "REDACTED_PASSWORD")
 
 **API Routes** ([server/routes/](server/routes/)):
 - auth.ts: POST /login, GET /verify, POST /logout
 - categories.ts: Full CRUD (protected with requireAuth middleware)
+- authors.ts: Full CRUD for author profiles (protected with requireAuth middleware)
 - articles.ts: Full CRUD (GET public for published, write operations protected)
   - GET /api/articles/slug/:slug - Public access to published articles
+  - Accepts FAQs array in create/update operations
+- sitemap.ts: GET /sitemap.xml - Auto-generated XML sitemap
 
 **Authentication** ([server/middleware/auth.ts](server/middleware/auth.ts)):
 - JWT-based with bcrypt password hashing
@@ -118,10 +137,22 @@ Articles use a flexible content block system where each article contains an arra
 
 **Publishing Workflow**:
 1. Create article in admin → Save as 'draft'
-2. Preview content in Blog Post Builder
-3. Change status to 'published'
-4. Article appears automatically on /blog page
-5. Accessible via /articles/:slug (no authentication required)
+2. Add content using Quill.js rich text editor
+3. Add FAQs (optional) - displayed as collapsible accordion on frontend
+4. Configure SEO settings (meta title, description, focus keyword)
+5. Preview JSON-LD schema (BlogPosting + FAQPage if FAQs exist)
+6. Change status to 'published'
+7. Article appears automatically on /blog page
+8. Accessible via /blog/:slug (no authentication required)
+
+**SEO Features**:
+- BlogPosting JSON-LD schema with author, publisher, dates
+- FAQPage JSON-LD schema for FAQ rich snippets
+- Author profile pages with Person schema
+- Breadcrumb navigation
+- Custom meta tags per article
+- Sitemap.xml with all published articles
+- Canonical URLs
 
 ### TypeScript Configuration
 
@@ -230,9 +261,18 @@ pnpm run build  # Runs type-check + lint before building
 - GET /api/articles - List articles (authenticated, filters by categoryId/status)
 - GET /api/articles/:id - Get article by ID (authenticated)
 - GET /api/articles/slug/:slug - Get published article by slug (PUBLIC, no auth)
-- POST /api/articles - Create article (authenticated)
-- PUT /api/articles/:id - Update article (authenticated)
+- GET /api/articles/public - Get all published articles (PUBLIC, no auth)
+- POST /api/articles - Create article with FAQs (authenticated)
+- PUT /api/articles/:id - Update article with FAQs (authenticated)
 - DELETE /api/articles/:id - Delete article (authenticated)
+
+**Authors**:
+- GET /api/authors - List all authors (authenticated)
+- GET /api/authors/:id - Get author by ID (authenticated)
+- GET /api/authors/slug/:slug - Get author by slug (PUBLIC, no auth)
+- POST /api/authors - Create author (authenticated)
+- PUT /api/authors/:id - Update author (authenticated)
+- DELETE /api/authors/:id - Delete author (authenticated)
 
 **Contact Form**:
 - GET /api/health - Health check with environment status

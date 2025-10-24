@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Mail, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Globe, Eye } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -7,6 +7,16 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { getAuthors, createAuthor, updateAuthor, deleteAuthor } from '../../services/authorService';
 import type { Author } from '../../types/admin';
+
+// Helper function to ensure URL has protocol
+const ensureHttps = (url: string): string => {
+  if (!url) return url;
+  const trimmed = url.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+};
 
 export function AuthorView() {
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -227,7 +237,7 @@ export function AuthorView() {
                   <div className="flex items-center gap-2 flex-wrap">
                     {author.social?.twitter && (
                       <a
-                        href={author.social.twitter}
+                        href={ensureHttps(author.social.twitter)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-2.5 py-1 text-xs font-medium text-gray-400 bg-[#2a2a2a] rounded hover:bg-[#d4af37] hover:text-black transition-all"
@@ -237,7 +247,7 @@ export function AuthorView() {
                     )}
                     {author.social?.linkedin && (
                       <a
-                        href={author.social.linkedin}
+                        href={ensureHttps(author.social.linkedin)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-2.5 py-1 text-xs font-medium text-gray-400 bg-[#2a2a2a] rounded hover:bg-[#d4af37] hover:text-black transition-all"
@@ -247,7 +257,7 @@ export function AuthorView() {
                     )}
                     {author.social?.facebook && (
                       <a
-                        href={author.social.facebook}
+                        href={ensureHttps(author.social.facebook)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-2.5 py-1 text-xs font-medium text-gray-400 bg-[#2a2a2a] rounded hover:bg-[#d4af37] hover:text-black transition-all"
@@ -257,7 +267,7 @@ export function AuthorView() {
                     )}
                     {author.social?.website && (
                       <a
-                        href={author.social.website}
+                        href={ensureHttps(author.social.website)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-2.5 py-1 text-xs font-medium text-gray-400 bg-[#2a2a2a] rounded hover:bg-[#d4af37] hover:text-black transition-all inline-flex items-center gap-1"
@@ -279,6 +289,19 @@ export function AuthorView() {
                   >
                     <Edit size={16} />
                     <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const authorUrl = author.slug
+                        ? `/author/${author.slug}`
+                        : `/author/${encodeURIComponent(author.name)}`;
+                      window.open(authorUrl, '_blank');
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#d4af37]/10 transition-all"
+                    title={!author.slug ? 'Edit and save this author to generate clean URL' : 'View author page'}
+                  >
+                    <Eye size={16} />
+                    <span>View</span>
                   </button>
                   <button
                     onClick={() => handleDeleteAuthor(author.id)}
@@ -435,17 +458,16 @@ export function AuthorView() {
 
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="adminOutline"
               onClick={() => setIsCreateDialogOpen(false)}
               disabled={submitting}
-              className="border-[#3a3a3a] text-gray-400 hover:text-white"
             >
               Cancel
             </Button>
             <Button
+              variant="admin"
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-[#d4af37] hover:bg-[#c09d2f] text-black"
             >
               {submitting
                 ? (editingAuthor ? 'Updating...' : 'Creating...')

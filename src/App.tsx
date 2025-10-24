@@ -18,6 +18,8 @@ import Privacy from './pages/privacy';
 import Error from './pages/error';
 import Contact from './pages/contact';
 import ArticlePreview from './pages/article-preview';
+import AuthorPage from './pages/author';
+import CategoryPage from './pages/category';
 import AdminLogin from './pages/admin/login';
 import AdminDashboard from './pages/admin/dashboard';
 
@@ -41,7 +43,9 @@ function App() {
         <Route path='/privacy' element={<Privacy/>} />
         <Route path='/error' element={<Error/>} />
         <Route path='/contact' element={<Contact/>} />
-        <Route path='/articles/:slug' element={<ArticlePreview/>} />
+        <Route path='/blog/:slug' element={<ArticlePreview/>} />
+        <Route path='/author/:slug' element={<AuthorPage/>} />
+        <Route path='/category/:slug' element={<CategoryPage/>} />
 
         {/* Admin routes */}
         <Route path='/admin/login' element={<AdminLogin/>} />

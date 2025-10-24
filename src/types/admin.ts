@@ -2,6 +2,7 @@
 export interface Category {
   id: string;
   name: string;
+  slug: string;
   description: string;
   createdAt: string;
 }
@@ -10,6 +11,7 @@ export interface Category {
 export interface Author {
   id: string;
   name: string;
+  slug: string;
   profilePicture: string;
   bio: string;
   email?: string;
@@ -34,6 +36,12 @@ export interface ArticleContent {
   };
 }
 
+// FAQ types
+export interface FAQ {
+  question: string;
+  answer: string;
+}
+
 // Article types
 export interface Article {
   id: string;
@@ -51,6 +59,8 @@ export interface Article {
   metaTitle?: string;
   metaDescription?: string;
   focusKeyword?: string;
+  // FAQ Section
+  faqs?: FAQ[];
   // Draft fields - for work-in-progress without affecting published content
   draftTitle?: string;
   draftCategoryId?: string;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import bgImage from "../assets/images/bg/btshome1.jpg"
 
@@ -19,9 +19,10 @@ import defaultBlogImage from "../assets/images/blog/1.jpg";
 // BTS logo fallback (public folder)
 const btsLogo = "/btsolutions.png";
 
-export default function Blog(): JSX.Element {
+export default function CategoryPage(): JSX.Element {
+    const { slug } = useParams<{ slug: string }>();
+    const [category, setCategory] = useState<Category | null>(null);
     const [articles, setArticles] = useState<Article[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
     const [authors, setAuthors] = useState<Author[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -34,48 +35,56 @@ export default function Blog(): JSX.Element {
         document.documentElement.classList.remove('light');
     }, []);
 
-    // Fetch articles, categories, and authors when page loads
+    // Fetch category and articles
     useEffect(() => {
         const fetchData = async () => {
+            if (!slug) return;
+
             try {
                 setLoading(true);
-                const [articlesData, categoriesData, authorsData] = await Promise.all([
-                    getPublishedArticles(),
+                const [categoriesData, articlesData, authorsData] = await Promise.all([
                     getPublicCategories(),
+                    getPublishedArticles(),
                     getAuthors()
                 ]);
-                setArticles(articlesData);
-                setCategories(categoriesData);
+
+                // Find category by slug
+                const foundCategory = categoriesData.find(cat => cat.slug === slug);
+
+                if (!foundCategory) {
+                    setError('Category not found');
+                    setLoading(false);
+                    return;
+                }
+
+                setCategory(foundCategory);
+
+                // Filter articles by this category
+                const categoryArticles = articlesData.filter(article => article.categoryId === foundCategory.id);
+                setArticles(categoryArticles);
                 setAuthors(authorsData);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching blog data:', err);
-                setError('Failed to load articles. Please try again later.');
+                console.error('Error fetching category data:', err);
+                setError('Failed to load category. Please try again later.');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, []);
-
-    // Helper: Get category from ID
-    const getCategory = (categoryId: string) => {
-        return categories.find(cat => cat.id === categoryId);
-    };
+    }, [slug]);
 
     // Helper: Get author info from name
     const getAuthorInfo = (authorName: string): { name: string; profilePicture: string; slug?: string } => {
         const author = authors.find(a => a.name === authorName);
         if (author) {
-            // Found author in database, use their profile picture and slug
             return {
                 name: author.name,
                 profilePicture: author.profilePicture,
                 slug: author.slug
             };
         } else {
-            // Custom/guest author - use BTS logo as fallback
             return {
                 name: authorName,
                 profilePicture: btsLogo,
@@ -123,10 +132,56 @@ export default function Blog(): JSX.Element {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    if (loading) {
+        return (
+            <>
+                <NavLight />
+                <section className="relative md:py-44 py-32 bg-no-repeat bg-bottom bg-cover" style={{ backgroundImage: `url(${bgImage})` }}>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-slate-900/70"></div>
+                </section>
+                <section className="relative md:py-24 py-16">
+                    <div className="container relative">
+                        <div className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
+                            <p className="mt-4 text-slate-400">Loading category...</p>
+                        </div>
+                    </div>
+                </section>
+                <Footer />
+                <Switcher />
+            </>
+        );
+    }
+
+    if (error || !category) {
+        return (
+            <>
+                <NavLight />
+                <section className="relative md:py-44 py-32 bg-no-repeat bg-bottom bg-cover" style={{ backgroundImage: `url(${bgImage})` }}>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-slate-900/70"></div>
+                </section>
+                <section className="relative md:py-24 py-16">
+                    <div className="container relative">
+                        <div className="text-center py-12">
+                            <p className="text-red-500">{error || 'Category not found'}</p>
+                            <Link to="/blog" className="mt-4 inline-block text-amber-400 hover:text-amber-300">
+                                ← Back to Blog
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+                <Footer />
+                <Switcher />
+            </>
+        );
+    }
+
     // SEO data
-    const pageTitle = "Blog | Better Teaching Solutions";
-    const pageDescription = "Read the latest articles about teaching methods, classroom management, and educational resources from Better Teaching Solutions. Empowering educators with practical insights.";
-    const canonicalUrl = window.location.origin + window.location.pathname;
+    const pageTitle = `${category.name} | Blog | Better Teaching Solutions`;
+    const pageDescription = category.description
+        ? `${category.description} - Browse all articles about ${category.name} from Better Teaching Solutions.`
+        : `Browse articles about ${category.name} - Educational resources and teaching insights from Better Teaching Solutions.`;
+    const canonicalUrl = `${window.location.origin}/category/${category.slug}`;
 
     // Pagination URLs for SEO
     const prevPageUrl = currentPage > 1 ? `${canonicalUrl}?page=${currentPage - 1}` : null;
@@ -168,7 +223,14 @@ export default function Blog(): JSX.Element {
                 <div className="container relative">
                     <div className="grid grid-cols-1 text-center mt-6">
                         <div>
-                            <h5 className="md:text-4xl text-3xl md:leading-normal leading-normal tracking-wider font-semibold text-white mb-0">Latest Blogs & News</h5>
+                            <h5 className="md:text-4xl text-3xl md:leading-normal leading-normal tracking-wider font-semibold text-white mb-0">
+                                {category.name}
+                            </h5>
+                            {category.description && (
+                                <p className="text-slate-300 mt-4 max-w-2xl mx-auto">
+                                    {category.description}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -187,30 +249,28 @@ export default function Blog(): JSX.Element {
                     <Breadcrumb
                         items={[
                             { label: 'Home', href: '/' },
-                            { label: 'Blog' },
+                            { label: 'Blog', href: '/blog' },
+                            { label: category.name },
                         ]}
                     />
 
+                    {/* Article Count */}
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                            {articles.length} Article{articles.length !== 1 ? 's' : ''} in {category.name}
+                        </h2>
+                    </div>
 
-                    {loading ? (
-                        <div className="text-center py-12">
-                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
-                            <p className="mt-4 text-slate-400">Loading articles...</p>
-                        </div>
-                    ) : error ? (
-                        <div className="text-center py-12">
-                            <p className="text-red-500">{error}</p>
-                        </div>
-                    ) : articles.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-slate-400">No articles published yet. Check back soon!</p>
+                    {articles.length === 0 ? (
+                        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-lg">
+                            <p className="text-slate-400">No articles published in this category yet.</p>
+                            <Link to="/blog" className="mt-4 inline-block text-amber-400 hover:text-amber-300">
+                                ← Browse all articles
+                            </Link>
                         </div>
                     ) : (
                         <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
                             {currentArticles.map((article) => {
-                                const category = getCategory(article.categoryId);
-                                const categoryName = category?.name || 'Uncategorized';
-                                const categorySlug = category?.slug;
                                 const readTime = calculateReadTime(article.content);
                                 const formattedDate = formatDate(article.createdAt);
                                 const articleImage = article.featuredImage || defaultBlogImage;
@@ -230,36 +290,22 @@ export default function Blog(): JSX.Element {
 
                                         {/* Card Content */}
                                         <div className="p-4 flex flex-col flex-grow">
-                                            {/* Section 1: Category Tag | Read Time */}
-                                            <div className="flex justify-between items-center gap-2 mb-4">
-                                                <div className="flex-shrink-0 min-w-0">
-                                                    {categorySlug ? (
-                                                        <Link
-                                                            to={`/category/${categorySlug}`}
-                                                            className="bg-amber-400/10 text-amber-500 dark:text-amber-400 hover:bg-amber-400/20 text-[12px] font-semibold px-2.5 py-0.5 rounded inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full transition-colors"
-                                                        >
-                                                            {categoryName}
-                                                        </Link>
-                                                    ) : (
-                                                        <span className="bg-amber-400/10 text-amber-500 dark:text-amber-400 text-[12px] font-semibold px-2.5 py-0.5 rounded inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
-                                                            {categoryName}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center text-slate-400 text-sm flex-shrink-0 whitespace-nowrap">
+                                            {/* Read Time */}
+                                            <div className="flex justify-end items-center mb-4">
+                                                <div className="flex items-center text-slate-400 text-sm">
                                                     <FiClock className="h-4 w-4" />
                                                     <span className="ml-1">{readTime}</span>
                                                 </div>
                                             </div>
 
-                                            {/* Section 2: Title */}
+                                            {/* Title */}
                                             <div className="mb-4 flex-grow">
                                                 <Link to={`/blog/${articleSlug}`} className="text-lg font-semibold hover:text-amber-400 line-clamp-2 block">
                                                     {article.title}
                                                 </Link>
                                             </div>
 
-                                            {/* Section 3: Author Info | Date Posted */}
+                                            {/* Author Info | Date Posted */}
                                             <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800">
                                                 <Link
                                                     to={`/author/${authorInfo.slug || encodeURIComponent(authorInfo.name)}`}

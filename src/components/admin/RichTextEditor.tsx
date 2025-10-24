@@ -41,7 +41,7 @@ export function RichTextEditor({
   // Quill modules configuration
   const modules = useMemo(() => ({
     toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ 'header': [2, 3, 4, 5, 6, false] }], // Removed H1 (1) - article title is the H1
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
       [{ 'indent': '-1'}, { 'indent': '+1' }],
