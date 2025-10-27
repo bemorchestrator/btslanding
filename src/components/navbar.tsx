@@ -178,7 +178,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
                 <li><Link to="/services" className="sub-menu-item">Services</Link></li>
 
                 <li className="has-submenu parent-menu-item">
-                  <Link to="#">Articles</Link>
+                  <Link to="/blog">Articles</Link>
                   <span className="submenu-arrow"></span>
                   <ArticlesDropdown />
                 </li>
