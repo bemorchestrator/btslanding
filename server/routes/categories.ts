@@ -12,9 +12,8 @@ const router = express.Router();
  */
 router.get('/public', async (_req: Request, res: Response): Promise<void> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const categories = (await (Category as any).find()
-      .sort({ name: 1 })) as any; // Sort alphabetically by name
+    const categories = await Category.find()
+      .sort({ name: 1 }); // Sort alphabetically by name
 
     res.status(200).json({
       success: true,
@@ -38,9 +37,8 @@ router.get('/public', async (_req: Request, res: Response): Promise<void> => {
  */
 router.get('/', requireAuth, async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const categories = (await (Category as any).find()
-      .sort({ createdAt: -1 })) as any; // Removed .lean() to use toJSON transform
+    const categories = await Category.find()
+      .sort({ createdAt: -1 }); // Sort by creation date (newest first)
 
     res.status(200).json({
       success: true,
@@ -67,7 +65,7 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise
     const { id } = req.params;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const category = await (Category as any).findById(id);
+    const category = await Category.findById(id);
 
     if (!category) {
       res.status(404).json({
@@ -111,7 +109,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<v
 
     // Check if category with same name already exists
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingCategory = await (Category as any).findOne({ name });
+    const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
       res.status(409).json({
         success: false,
@@ -122,7 +120,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<v
 
     // Create new category
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const category = await (Category as any).create({
+    const category = await Category.create({
       name,
       description,
     });
@@ -174,7 +172,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise
 
     // Check if category exists
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const category = await (Category as any).findById(id);
+    const category = await Category.findById(id);
     if (!category) {
       res.status(404).json({
         success: false,
@@ -185,7 +183,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise
 
     // Check if new name conflicts with existing category (excluding current one)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingCategory = await (Category as any).findOne({
+    const existingCategory = await Category.findOne({
       name,
       _id: { $ne: id },
     });
@@ -239,7 +237,7 @@ router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response): Prom
     const { id } = req.params;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const category = await (Category as any).findById(id);
+    const category = await Category.findById(id);
 
     if (!category) {
       res.status(404).json({

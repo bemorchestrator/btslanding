@@ -131,6 +131,8 @@ AuthorSchema.index({ slug: 1 });
 /**
  * Author Model
  * Export the Mongoose model for use in routes and controllers
+ * Note: Using 'any' type because Mongoose's Model<IAuthor> produces a union type too complex for TypeScript to represent
+ * This is a known Mongoose/TypeScript limitation - the model is properly typed at runtime
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Author: any = mongoose.model('Author', AuthorSchema);

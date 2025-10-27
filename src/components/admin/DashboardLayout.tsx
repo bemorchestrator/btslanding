@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, FolderOpen, FileText, LogOut, Menu, X, User } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, FileText, LogOut, Menu, X, User, Home } from 'lucide-react';
 import logoImage from '../../assets/images/logo-admin.png';
 
 type DashboardLayoutProps = {
@@ -87,7 +87,14 @@ export function DashboardLayout({ children, currentView, setCurrentView, onLogou
         </nav>
 
         {/* User section */}
-        <div className="p-4 border-t border-[#2a2a2a]">
+        <div className="p-4 border-t border-[#2a2a2a] space-y-2">
+          <a
+            href="/"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-[#2a2a2a] hover:text-white transition-colors"
+          >
+            <Home size={20} />
+            <span>Landing Page</span>
+          </a>
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-[#2a2a2a] hover:text-white transition-colors"
@@ -141,7 +148,14 @@ export function DashboardLayout({ children, currentView, setCurrentView, onLogou
         </nav>
 
         {/* User section */}
-        <div className="p-4 border-t border-[#2a2a2a]">
+        <div className="p-4 border-t border-[#2a2a2a] space-y-2">
+          <a
+            href="/"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-[#2a2a2a] hover:text-white transition-colors"
+          >
+            <Home size={20} />
+            <span>Landing Page</span>
+          </a>
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-[#2a2a2a] hover:text-white transition-colors"

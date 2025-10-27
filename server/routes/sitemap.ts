@@ -25,8 +25,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response): Promise<void> =>
     const baseUrl = process.env.SITE_URL || `${req.protocol}://${req.get('host')}`;
 
     // Fetch all published articles from MongoDB
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const articles = await (Article as any)
+    const articles = await Article
       .find({ status: 'published' })
       .sort({ updatedAt: -1 })
       .select('slug updatedAt createdAt')

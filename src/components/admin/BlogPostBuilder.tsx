@@ -18,6 +18,9 @@ type BlogPostBuilderProps = {
 };
 
 export function BlogPostBuilder({ article, categoryId, categories, onCancel, onArticlesChange }: BlogPostBuilderProps) {
+  // Loading state for fetching full article data
+  const [isLoadingArticle, setIsLoadingArticle] = useState(!!article?.id);
+
   // When editing existing article, load draft version if it exists, otherwise load published version
   const [title, setTitle] = useState(article?.draftTitle || article?.title || '');
   const [author, setAuthor] = useState(article?.draftAuthor || article?.author || '');
@@ -50,6 +53,43 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
   const [showFaqForm, setShowFaqForm] = useState(false);
   // Editor Collapsible State
   const [isEditorExpanded, setIsEditorExpanded] = useState(true);
+
+  // Fetch full article data when editing (list view only provides limited fields)
+  useEffect(() => {
+    const fetchFullArticle = async () => {
+      if (article?.id) {
+        setIsLoadingArticle(true);
+        try {
+          const fullArticle = await articleService.getArticleById(article.id);
+          // Update all form fields with complete data
+          setTitle(fullArticle.draftTitle || fullArticle.title || '');
+          setAuthor(fullArticle.draftAuthor || fullArticle.author || '');
+          setStatus(fullArticle.status || 'draft');
+          setSelectedCategory(fullArticle.draftCategoryId || fullArticle.categoryId || categoryId);
+          setFeaturedImage(fullArticle.draftFeaturedImage || fullArticle.featuredImage || '');
+          setContent(fullArticle.draftContent || fullArticle.content || '');
+          setMetaTitle(fullArticle.metaTitle || '');
+          setMetaDescription(fullArticle.metaDescription || '');
+          setFocusKeyword(fullArticle.focusKeyword || '');
+          setCustomSlug(fullArticle.slug || '');
+          setFaqs(fullArticle.faqs || []);
+          setSavedArticleSlug(fullArticle.slug || null);
+          setLocalHasDraftChanges(
+            !!(fullArticle.draftTitle || fullArticle.draftContent || fullArticle.draftAuthor)
+          );
+        } catch (err) {
+          console.error('Error fetching full article:', err);
+          setError('Failed to load article data');
+        } finally {
+          setIsLoadingArticle(false);
+        }
+      } else {
+        setIsLoadingArticle(false);
+      }
+    };
+
+    fetchFullArticle();
+  }, [article?.id, categoryId]);
 
   // Fetch authors on mount
   useEffect(() => {
@@ -403,6 +443,33 @@ export function BlogPostBuilder({ article, categoryId, categories, onCancel, onA
       setFaqAnswer('');
     }
   };
+
+  // Show loading indicator while fetching article data
+  if (isLoadingArticle) {
+    return (
+      <div className="h-screen bg-[#0a0a0a] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-4 md:p-6 mt-16 md:mt-0">
+          <div className="flex items-center gap-2 md:gap-4">
+            <button
+              onClick={onCancel}
+              className="text-gray-400 hover:text-white flex items-center gap-2"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <h1 className="text-white text-base md:text-xl font-medium">
+              Loading Article...
+            </h1>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 text-[#d4af37] animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading article data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-[#0a0a0a] flex flex-col overflow-hidden">
