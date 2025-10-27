@@ -11,7 +11,6 @@ import IndexLight from './pages/index-light';
 import AboutUs from './pages/aboutus';
 import Pricing from './pages/pricing';
 import Services from './pages/services';
-import BlogDetails from './pages/blog-detail';
 import Helpcenter from './pages/helpcenter';
 import Terms from './pages/terms';
 import Privacy from './pages/privacy';
@@ -36,8 +35,6 @@ function App() {
         <Route path='/aboutus' element={<AboutUs/>} />
         <Route path='/pricing' element={<Pricing/>} />
         <Route path='/services' element={<Services/>} />
-        <Route path='/blog-detail' element={<BlogDetails/>} />
-        <Route path='/blog-detail/:id' element={<BlogDetails/>} />
         <Route path='/helpcenter' element={<Helpcenter/>} />
         <Route path='/terms' element={<Terms/>} />
         <Route path='/privacy' element={<Privacy/>} />
