@@ -14,7 +14,7 @@ console.log('✅ Author routes loaded');
 router.get('/', async (_req: Request, res: Response): Promise<void> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const authors = await (Author as any)
+    const authors = await Author
       .find()
       .sort({ name: 1 });
 
@@ -60,7 +60,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const author = await (Author as any).findById(req.params.id);
+    const author = await Author.findById(req.params.id);
 
     if (!author) {
       res.status(404).json({ message: 'Author not found' });
@@ -109,7 +109,7 @@ router.post('/', requireAuth, async (req: Request, res: Response): Promise<void>
 
     // Create author
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const author = await (Author as any).create({
+    const author = await Author.create({
       name: name.trim(),
       profilePicture: profilePicture.trim(),
       bio: bio.trim(),
@@ -183,7 +183,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response): Promise<voi
 
     // Find author first, then update and save to trigger pre-save hooks
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const author = await (Author as any).findById(req.params.id);
+    const author = await Author.findById(req.params.id);
 
     if (!author) {
       res.status(404).json({ message: 'Author not found' });
@@ -229,7 +229,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response): Promise<voi
 router.delete('/:id', requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const author = await (Author as any).findByIdAndDelete(req.params.id);
+    const author = await Author.findByIdAndDelete(req.params.id);
 
     if (!author) {
       res.status(404).json({ message: 'Author not found' });

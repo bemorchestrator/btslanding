@@ -37,7 +37,7 @@ export default function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch articles on mount only
+  // Fetch articles on mount only - optimized to avoid duplicate fetches
   useEffect(() => {
     const loadArticles = async () => {
       try {
@@ -48,7 +48,10 @@ export default function AdminDashboard() {
         console.error('Error fetching articles:', error);
       }
     };
-    loadArticles();
+    // Only fetch if we don't have counts yet (initial load)
+    if (articlesCount === 0 && publishedCount === 0) {
+      loadArticles();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

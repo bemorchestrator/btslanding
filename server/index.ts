@@ -94,7 +94,7 @@ app.get('/sitemap.xml', async (_req: Request, res: Response): Promise<void> => {
 
     // Fetch all published articles
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const articles = await (Article as any)
+    const articles = await Article
       .find({ status: 'published' })
       .sort({ updatedAt: -1 })
       .select('slug updatedAt createdAt')
@@ -186,6 +186,28 @@ app.get('/api/health', (_req: Request, res: Response) => {
       EMAIL_PASS: process.env.EMAIL_PASS ? 'Set' : 'Not set'
     }
   });
+});
+
+// Database indexes diagnostic endpoint (development only)
+app.get('/api/dev/indexes', async (_req: Request, res: Response) => {
+  if (process.env.NODE_ENV !== 'development') {
+    res.status(403).json({ message: 'Only available in development mode' });
+    return;
+  }
+
+  try {
+    const indexes = await Article.collection.getIndexes();
+    res.status(200).json({
+      success: true,
+      collection: 'articles',
+      indexes: indexes,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 });
 
 // Contact form endpoint
