@@ -1,0 +1,389 @@
+import express, { Request, Response } from 'express';
+import { Article } from '../models/article';
+import { AuthRequest, requireAuth } from '../middleware/auth';
+
+const router = express.Router();
+
+/**
+ * GET /api/articles
+ * Get all articles (with optional filters)
+ * Query params: categoryId, status
+ * @access Protected
+ */
+router.get('/', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { categoryId, status } = req.query;
+
+    // Build filter object
+    const filter: { categoryId?: string; status?: string } = {};
+    if (categoryId) filter.categoryId = categoryId as string;
+    if (status) filter.status = status as string;
+
+    const articles = await Article.find(filter)
+      .select('_id title slug categoryId author status createdAt updatedAt draftTitle draftCategoryId draftAuthor')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Transform _id to id for frontend compatibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const transformedArticles = articles.map((article: any) => ({
+      ...article,
+      id: String(article._id),
+      _id: undefined,
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: transformedArticles.length,
+      data: transformedArticles,
+    });
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch articles',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /api/articles/public
+ * Get all published articles (PUBLIC - no authentication required)
+ * Only returns articles with status 'published' sorted by creation date
+ * Used for blog page display
+ * @access Public
+ */
+router.get('/public', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const articles = await Article.find({ status: 'published' })
+      .select('_id title slug categoryId author status featuredImage metaDescription createdAt updatedAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Transform _id to id for frontend compatibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const transformedArticles = articles.map((article: any) => ({
+      ...article,
+      id: String(article._id),
+      _id: undefined,
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: transformedArticles.length,
+      data: transformedArticles,
+    });
+  } catch (error) {
+    console.error('Error fetching public articles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch articles',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /api/articles/slug/:slug
+ * Get single article by slug (PUBLIC - no authentication)
+ * Only returns published articles
+ * @access Public
+ */
+router.get('/slug/:slug', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { slug } = req.params;
+
+    const article = await Article.findOne({ slug, status: 'published' });
+
+    if (!article) {
+      res.status(404).json({
+        success: false,
+        message: 'Article not found or not published',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: article,
+    });
+  } catch (error) {
+    console.error('Error fetching article by slug:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch article',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /api/articles/:id
+ * Get single article by ID
+ * @access Protected
+ */
+router.get('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const article = await Article.findById(id);
+
+    if (!article) {
+      res.status(404).json({
+        success: false,
+        message: 'Article not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: article,
+    });
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch article',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /api/articles
+ * Create new article
+ * @access Protected
+ */
+router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { title, categoryId, content, contentBlocks, author, status, featuredImage, slug, metaTitle, metaDescription, focusKeyword, faqs } = req.body;
+
+    // Validate required fields
+    if (!title || !categoryId || !author) {
+      res.status(400).json({
+        success: false,
+        message: 'Title, category, and author are required',
+      });
+      return;
+    }
+
+    // Create new article (slug will be auto-generated by pre-save hook if not provided)
+    const article = await Article.create({
+      title,
+      categoryId,
+      content: content || '',
+      contentBlocks: contentBlocks || [],
+      author,
+      status: status || 'draft',
+      featuredImage,
+      slug: slug || undefined,
+      metaTitle,
+      metaDescription,
+      focusKeyword,
+      faqs: faqs || [],
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Article created successfully',
+      data: article,
+    });
+  } catch (error) {
+    console.error('Error creating article:', error);
+
+    // Handle Mongoose validation errors
+    if (error instanceof Error && error.name === 'ValidationError') {
+      res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        error: error.message,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create article',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * PUT /api/articles/:id
+ * Update article
+ * @access Protected
+ */
+router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { title, categoryId, content, contentBlocks, author, status, featuredImage, slug, metaTitle, metaDescription, focusKeyword, faqs, saveDraft, draftTitle, draftCategoryId, draftContent, draftAuthor, draftFeaturedImage } = req.body;
+
+    // Validate required fields
+    if (!title || !categoryId || !author) {
+      res.status(400).json({
+        success: false,
+        message: 'Title, category, and author are required',
+      });
+      return;
+    }
+
+    // Check if article exists
+    const article = await Article.findById(id);
+    if (!article) {
+      res.status(404).json({
+        success: false,
+        message: 'Article not found',
+      });
+      return;
+    }
+
+    // Check if we're explicitly clearing draft fields (discard operation)
+    const isClearingDrafts =
+      draftTitle !== undefined &&
+      draftCategoryId !== undefined &&
+      draftContent !== undefined &&
+      draftAuthor !== undefined;
+
+    // If explicit draft fields are provided (e.g., for clearing during discard), set them
+    // This allows setting them to null to clear draft changes
+    if (draftTitle !== undefined) {
+      article.draftTitle = draftTitle === null ? undefined : draftTitle;
+    }
+    if (draftCategoryId !== undefined) {
+      article.draftCategoryId = draftCategoryId === null ? undefined : draftCategoryId;
+    }
+    if (draftContent !== undefined) {
+      article.draftContent = draftContent === null ? undefined : draftContent;
+    }
+    if (draftAuthor !== undefined) {
+      article.draftAuthor = draftAuthor === null ? undefined : draftAuthor;
+    }
+    if (draftFeaturedImage !== undefined) {
+      article.draftFeaturedImage = draftFeaturedImage === null ? undefined : draftFeaturedImage;
+    }
+
+    // Only run save/publish logic if we're NOT explicitly clearing drafts
+    if (!isClearingDrafts && saveDraft === true) {
+      // Save Draft mode: Only update draft fields, keep published content untouched
+      article.draftTitle = title;
+      article.draftCategoryId = categoryId;
+      article.draftContent = content || '';
+      article.draftAuthor = author;
+      if (featuredImage !== undefined) {
+        article.draftFeaturedImage = featuredImage;
+      }
+    } else if (!isClearingDrafts) {
+      // Publish/Update mode: Update published fields and CLEAR draft fields
+      // Skip this if we're explicitly clearing drafts
+      article.title = title;
+      article.categoryId = categoryId;
+      article.content = content || '';
+      article.contentBlocks = contentBlocks || [];
+      article.author = author;
+      article.status = status || 'draft';
+      if (featuredImage !== undefined) {
+        article.featuredImage = featuredImage;
+      }
+      // Update custom slug if provided
+      if (slug !== undefined) {
+        article.slug = slug || undefined;
+      }
+      // Update SEO fields
+      if (metaTitle !== undefined) {
+        article.metaTitle = metaTitle;
+      }
+      if (metaDescription !== undefined) {
+        article.metaDescription = metaDescription;
+      }
+      if (focusKeyword !== undefined) {
+        article.focusKeyword = focusKeyword;
+      }
+      // Update FAQs
+      if (faqs !== undefined) {
+        article.faqs = faqs;
+      }
+
+      // Clear draft fields since we're publishing the changes
+      article.draftTitle = undefined;
+      article.draftCategoryId = undefined;
+      article.draftContent = undefined;
+      article.draftAuthor = undefined;
+      article.draftFeaturedImage = undefined;
+    }
+
+    // Save will trigger pre-save hook to regenerate slug if title changed
+    await article.save();
+
+    // Determine success message based on operation type
+    let successMessage = 'Article updated successfully';
+    if (isClearingDrafts) {
+      successMessage = 'Draft changes discarded successfully';
+    } else if (saveDraft) {
+      successMessage = 'Draft saved successfully';
+    }
+
+    res.status(200).json({
+      success: true,
+      message: successMessage,
+      data: article,
+    });
+  } catch (error) {
+    console.error('Error updating article:', error);
+
+    // Handle Mongoose validation errors
+    if (error instanceof Error && error.name === 'ValidationError') {
+      res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        error: error.message,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update article',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * DELETE /api/articles/:id
+ * Delete article
+ * @access Protected
+ */
+router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const article = await Article.findById(id);
+
+    if (!article) {
+      res.status(404).json({
+        success: false,
+        message: 'Article not found',
+      });
+      return;
+    }
+
+    await article.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: 'Article deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting article:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete article',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+export default router;

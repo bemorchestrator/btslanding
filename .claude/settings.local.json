@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"src\\components\\clientTwo.js\")",
+      "Bash(del \"src\\components\\pricing.js\")",
+      "Bash(npm run lint)",
+      "Bash(del aboutus.js blog.js blog-detail.js contact.js error.js helpcenter.js index.js index-light.js index-three.js pricing.js privacy.js services.js terms.js)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm run type-check:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(xcopy:*)",
+      "Bash(robocopy:*)",
+      "Bash(powershell:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm run:*)",
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: improve draft indicator state management and add icons to action buttons\n\n- Add local state tracking for draft changes to provide immediate UI feedback\n- Import Save and Upload icons from lucide-react\n- Update draft indicator to use local state for instant visual response\n- Clear draft indicator immediately when discarding draft changes\n- Maintain WordPress-style draft/publish workflow\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(pnpm list:*)",
+      "Bash(dir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

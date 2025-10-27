@@ -4,6 +4,12 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
 import axios from 'axios';
+import authRoutes from './routes/auth';
+import categoryRoutes from './routes/categories';
+import articleRoutes from './routes/articles';
+import authorRoutes from './routes/authors';
+import { connectDatabase } from './config/database';
+import { Article } from './models/article';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
@@ -13,7 +19,8 @@ const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Set CSP headers that allow reCAPTCHA
 app.use((_req, res, next) => {
@@ -79,9 +86,96 @@ interface ContactFormData {
   website?: string;
 }
 
+// Sitemap route - Generate XML sitemap dynamically
+app.get('/sitemap.xml', async (_req: Request, res: Response): Promise<void> => {
+  console.log('🔥 SITEMAP ROUTE HIT!');
+  try {
+    const baseUrl = process.env.SITE_URL || 'http://localhost:3000';
+
+    // Fetch all published articles
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const articles = await Article
+      .find({ status: 'published' })
+      .sort({ updatedAt: -1 })
+      .select('slug updatedAt createdAt')
+      .lean();
+
+    // Static pages
+    const staticPages = [
+      { url: '/', priority: '1.0', changefreq: 'weekly' },
+      { url: '/blog', priority: '0.9', changefreq: 'daily' },
+      { url: '/aboutus', priority: '0.7', changefreq: 'monthly' },
+      { url: '/services', priority: '0.8', changefreq: 'monthly' },
+      { url: '/pricing', priority: '0.8', changefreq: 'monthly' },
+      { url: '/contact', priority: '0.7', changefreq: 'monthly' },
+    ];
+
+    // Build XML
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    // Add static pages
+    staticPages.forEach(page => {
+      xml += '  <url>\n';
+      xml += `    <loc>${baseUrl}${page.url}</loc>\n`;
+      xml += `    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\n`;
+      xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
+      xml += `    <priority>${page.priority}</priority>\n`;
+      xml += '  </url>\n';
+    });
+
+    // Add articles
+    articles.forEach((article: { slug: string; updatedAt?: Date; createdAt: Date }) => {
+      const lastmod = (article.updatedAt || article.createdAt).toISOString().split('T')[0];
+      xml += '  <url>\n';
+      xml += `    <loc>${baseUrl}/articles/${article.slug}</loc>\n`;
+      xml += `    <lastmod>${lastmod}</lastmod>\n`;
+      xml += `    <changefreq>monthly</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
+      xml += '  </url>\n';
+    });
+
+    xml += '</urlset>';
+
+    res.header('Content-Type', 'application/xml');
+    res.header('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+// Robots.txt route
+app.get('/robots.txt', (_req: Request, res: Response): void => {
+  const baseUrl = process.env.SITE_URL || 'http://localhost:3000';
+  const robotsTxt = `# Better Teaching Solutions - Robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+  res.header('Content-Type', 'text/plain');
+  res.send(robotsTxt);
+});
+
+// Mount auth routes
+app.use('/api/auth', authRoutes);
+
+// Mount category routes (auth handled per-route inside categories.ts)
+app.use('/api/categories', categoryRoutes);
+
+// Mount article routes (auth handled per-route inside articles.ts)
+app.use('/api/articles', articleRoutes);
+
+// Mount author routes (auth handled per-route inside authors.ts)
+app.use('/api/authors', authorRoutes);
+
 // Health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     env: {
@@ -92,6 +186,28 @@ app.get('/api/health', (_req: Request, res: Response) => {
       EMAIL_PASS: process.env.EMAIL_PASS ? 'Set' : 'Not set'
     }
   });
+});
+
+// Database indexes diagnostic endpoint (development only)
+app.get('/api/dev/indexes', async (_req: Request, res: Response) => {
+  if (process.env.NODE_ENV !== 'development') {
+    res.status(403).json({ message: 'Only available in development mode' });
+    return;
+  }
+
+  try {
+    const indexes = await Article.collection.getIndexes();
+    res.status(200).json({
+      success: true,
+      collection: 'articles',
+      indexes: indexes,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 });
 
 // Contact form endpoint
@@ -206,9 +322,9 @@ app.post('/api/contact', async (req: Request, res: Response): Promise<void> => {
             res.status(400).json({ message: 'Security verification failed. Please try again later.' });
             return;
           }
-        } catch (recaptchaError: any) {
+        } catch (recaptchaError: unknown) {
           console.error('reCAPTCHA verification error:', recaptchaError);
-          if (recaptchaError?.code === 'ECONNABORTED') {
+          if (recaptchaError && typeof recaptchaError === 'object' && 'code' in recaptchaError && recaptchaError.code === 'ECONNABORTED') {
             res.status(400).json({ message: 'Security verification timed out. Please try again.' });
           } else {
             res.status(400).json({ message: 'Security verification failed. Please try again.' });
@@ -311,19 +427,35 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Environment variables loaded:', {
-      SMTP_HOST: process.env.SMTP_HOST,
-      SMTP_PORT: process.env.SMTP_PORT,
-      SMTP_SECURE: process.env.SMTP_SECURE,
-      EMAIL_USER: process.env.EMAIL_USER ? 'Set' : 'Not set',
-      EMAIL_PASS: process.env.EMAIL_PASS ? 'Set' : 'Not set',
-      RECAPTCHA_SECRET_KEY: process.env.RECAPTCHA_SECRET_KEY ? 'Set' : 'Not set'
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Connect to MongoDB
+    await connectDatabase();
+
+    // Start Express server
+    app.listen(port, () => {
+      console.log(`🚀 Server is running on port ${port}`);
+      console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🔗 API: http://localhost:${port}/api`);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n📦 Environment variables loaded:', {
+          SMTP_HOST: process.env.SMTP_HOST,
+          SMTP_PORT: process.env.SMTP_PORT,
+          SMTP_SECURE: process.env.SMTP_SECURE,
+          EMAIL_USER: process.env.EMAIL_USER ? 'Set' : 'Not set',
+          EMAIL_PASS: process.env.EMAIL_PASS ? 'Set' : 'Not set',
+          RECAPTCHA_SECRET_KEY: process.env.RECAPTCHA_SECRET_KEY ? 'Set' : 'Not set',
+          MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not set',
+        });
+      }
     });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
   }
-}); 
+}
+
+// Start the server
+startServer(); 
