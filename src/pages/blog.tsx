@@ -85,10 +85,11 @@ export default function Blog(): JSX.Element {
     };
 
     // Helper: Calculate reading time
-    const calculateReadTime = (content: string): string => {
+    const calculateReadTime = (content: string | undefined): string => {
+        if (!content) return '1 min read';
         const wordsPerMinute = 200;
         const wordCount = content.split(/\s+/).length;
-        const minutes = Math.ceil(wordCount / wordsPerMinute);
+        const minutes = Math.max(1, Math.ceil(wordCount / wordsPerMinute));
         return `${minutes} min read`;
     };
 

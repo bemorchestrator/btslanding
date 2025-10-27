@@ -27,7 +27,7 @@ export default function Blogs() {
                                     </div>
 
                                     <div className="mt-5">
-                                        <Link to={`/blog-detail/${item.id}`} className="text-lg font-semibold hover:text-amber-400">{item.title}</Link>
+                                        <Link to="/blog" className="text-lg font-semibold hover:text-amber-400">{item.title}</Link>
                                     </div>
 
                                     <div className="mt-5 flex justify-between items-center">

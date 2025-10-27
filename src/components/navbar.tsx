@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import ArticlesDropdown from "./ArticlesDropdown";
 
 interface NavbarProps {
   className?: string;
@@ -166,45 +167,21 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
 
         <div id="navigation" className={`${toggleMenu ? 'block' : ''}`}>
           <ul className="navigation-menu">
-            <li className="has-submenu parent-menu-item">
-              <Link to="#">Home</Link>
-              <span className="menu-arrow"></span>
-              <ul className="submenu">
-                <li><Link to="/" className="sub-menu-item">Hero One</Link></li>
-                <li><Link to="/index-two" className="sub-menu-item">Hero Two</Link></li>
-                <li><Link to="/index-three" className="sub-menu-item">Hero Three</Link></li>
-                <li>
-                  <Link to="/index-light" className="sub-menu-item">
-                    Hero Light 
-                    <span className="bg-gray-50 dark:bg-slate-800 text-[10px] shadow shadow-gray-300 dark:shadow-gray-700 font-bold px-2.5 py-0.5 rounded h-5 ms-1">
-                      Light
-                    </span>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
+            <li><Link to="/" className="sub-menu-item">Home</Link></li>
             <li><Link to="/aboutus" className="sub-menu-item">About Us</Link></li>
             <li><Link to="/pricing" className="sub-menu-item">Pricing</Link></li>
-      
+
             <li className="has-submenu parent-parent-menu-item">
               <Link to="#">Pages</Link>
               <span className="menu-arrow"></span>
               <ul className="submenu">
                 <li><Link to="/services" className="sub-menu-item">Services</Link></li>
-                
+
                 <li className="has-submenu parent-menu-item">
-                  <Link to="#">Blog</Link>
+                  <Link to="#">Articles</Link>
                   <span className="submenu-arrow"></span>
-                  <ul className="submenu">
-                    <li><Link to="/blog" className="sub-menu-item">Blogs</Link></li>
-                    <li><Link to="/blog-detail" className="sub-menu-item">Blog Detail</Link></li>
-                  </ul>
+                  <ArticlesDropdown />
                 </li>
-                
-                <li><Link to="/helpcenter" className="sub-menu-item">Helpcenter</Link></li>
-
-
 
                 <li className="has-submenu parent-menu-item">
                   <Link to="#">Utility</Link>
@@ -214,11 +191,9 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
                     <li><Link to="/privacy" className="sub-menu-item">Privacy Policy</Link></li>
                   </ul>
                 </li>
-                
-                <li><Link to="/error" className="sub-menu-item">404!</Link></li>
               </ul>
             </li>
-      
+
             <li><Link to="/contact" className="sub-menu-item">Contact</Link></li>
           </ul>
         </div>
