@@ -19,7 +19,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "types": ["node", "react-scripts"]
   },
   "include": ["src", "server"],
   "exclude": ["node_modules"]
