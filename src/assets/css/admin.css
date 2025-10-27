@@ -1,0 +1,171 @@
+/**
+ * Admin Panel CSS - Clean Tailwind base without landing page overrides
+ * This file provides dark theme styles for /admin/* routes
+ * Uses .admin-mode body class for specificity over landing page styles
+ */
+
+/* Tailwind base - includes normalize.css and base styles */
+@tailwind base;
+
+/* Tailwind component classes */
+@tailwind components;
+
+/* Tailwind utility classes */
+@tailwind utilities;
+
+/* Admin-specific layer for dark theme defaults and overrides */
+@layer base {
+  /* Dark theme defaults for admin - high specificity */
+  body.admin-mode {
+    @apply bg-[#0a0a0a] text-white antialiased;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  }
+
+  /* Override landing page heading fonts */
+  body.admin-mode h1,
+  body.admin-mode h2,
+  body.admin-mode h3,
+  body.admin-mode h4,
+  body.admin-mode h5,
+  body.admin-mode h6 {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+
+  /* Reset any global link styles */
+  body.admin-mode a {
+    @apply cursor-pointer;
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+  /* Ensure proper paragraph styling */
+  body.admin-mode p {
+    line-height: inherit;
+  }
+
+  /* Override any form styles from landing page */
+  body.admin-mode input,
+  body.admin-mode textarea,
+  body.admin-mode select {
+    appearance: none;
+    background-color: transparent;
+    border-color: inherit;
+    border-width: 0;
+    border-radius: 0;
+    padding: 0;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+
+  /* Remove landing page button styles */
+  body.admin-mode button {
+    @apply cursor-pointer;
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+
+  /* Reset form input styles that might come from landing page */
+  body.admin-mode .form-input,
+  body.admin-mode .form-textarea,
+  body.admin-mode .form-select,
+  body.admin-mode .form-multiselect {
+    all: unset;
+  }
+
+  /* Ensure proper font rendering */
+  body.admin-mode * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Admin component overrides */
+@layer components {
+  /* Ensure dark inputs work properly in admin */
+  body.admin-mode input[type="text"],
+  body.admin-mode input[type="email"],
+  body.admin-mode input[type="password"],
+  body.admin-mode input[type="search"],
+  body.admin-mode textarea {
+    @apply bg-transparent text-white;
+  }
+
+  /* Ensure buttons have proper cursor in admin */
+  body.admin-mode button,
+  body.admin-mode [role="button"] {
+    @apply cursor-pointer;
+  }
+
+  /* Fix any z-index issues with modals/dialogs */
+  body.admin-mode [role="dialog"],
+  body.admin-mode [data-radix-dialog-overlay] {
+    @apply z-50;
+  }
+
+  /* Ensure dropdowns appear above other content */
+  body.admin-mode [role="menu"],
+  body.admin-mode [role="listbox"] {
+    @apply z-50;
+  }
+
+  /* Override any landing page specific classes */
+  body.admin-mode #topnav,
+  body.admin-mode .buy-button,
+  body.admin-mode .login-btn-primary,
+  body.admin-mode .login-btn-light {
+    all: unset;
+    display: none;
+  }
+}
+
+/* Utility layer for custom admin utilities */
+@layer utilities {
+  /* Custom scrollbar for admin */
+  body.admin-mode ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  body.admin-mode ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  body.admin-mode ::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 4px;
+  }
+
+  body.admin-mode ::-webkit-scrollbar-thumb:hover {
+    background: #4a4a4a;
+  }
+
+  /* Utility class for admin scrollbars */
+  .admin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .admin-scrollbar::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  .admin-scrollbar::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 4px;
+  }
+
+  .admin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #4a4a4a;
+  }
+}
