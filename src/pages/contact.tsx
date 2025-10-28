@@ -5,7 +5,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import contactImg from "../assets/images/contact.svg"
 import bgImage from "../assets/images/bg/btshome1.jpg"
 
-import Navbar from "../components/navbar";
+import NavLight from "../components/navlight";
 import Footer from "../components/footer";
 import Switcher from "../components/switcher";
 
@@ -60,9 +60,7 @@ export default function Contact(): JSX.Element {
     const [recaptchaError, setRecaptchaError] = useState<string | null>(null);
 
     useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
+        // Dark mode is now handled globally by StyleManager
         setFormStartTime(Date.now());
 
         const checkRecaptcha = (): void => {
@@ -247,7 +245,7 @@ export default function Contact(): JSX.Element {
 
     return (
         <>
-            <Navbar />
+            <NavLight />
             <section className="relative md:py-44 py-32 bg-no-repeat bg-bottom bg-cover" style={{ backgroundImage: `url(${bgImage})` }}>
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,1))' }}></div>
                 <div className="container relative">
@@ -280,7 +278,7 @@ export default function Contact(): JSX.Element {
 
                         <div className="lg:col-span-5 md:col-span-6">
                             <div className="lg:ms-5">
-                                <div className="bg-white dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 p-6">
+                                <div className="bg-slate-200 dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 p-6">
                                     <h3 className="mb-6 text-2xl leading-normal font-semibold">Get in touch!</h3>
 
                                     <form onSubmit={handleSubmit}>

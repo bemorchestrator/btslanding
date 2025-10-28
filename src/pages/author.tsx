@@ -34,11 +34,7 @@ export default function AuthorPage(): JSX.Element {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     // Fetch author and their articles
     useEffect(() => {
@@ -231,7 +227,7 @@ export default function AuthorPage(): JSX.Element {
                     />
 
                     {/* Author Profile Card */}
-                    <div className="mb-12 bg-white dark:bg-slate-900 rounded-lg shadow dark:shadow-gray-700 overflow-hidden">
+                    <div className="mb-12 bg-slate-200 dark:bg-slate-900 rounded-lg shadow dark:shadow-gray-700 overflow-hidden">
                         <div className="p-8">
                             <div className="flex flex-col md:flex-row gap-8">
                                 {/* Profile Picture */}
@@ -328,7 +324,7 @@ export default function AuthorPage(): JSX.Element {
                     </div>
 
                     {articles.length === 0 ? (
-                        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-lg">
+                        <div className="text-center py-12 bg-slate-200 dark:bg-slate-900 rounded-lg">
                             <p className="text-slate-400">No articles published yet by this author.</p>
                         </div>
                     ) : (
@@ -340,7 +336,7 @@ export default function AuthorPage(): JSX.Element {
                                 const articleSlug = article.slug || article.id;
 
                                 return (
-                                    <div className="relative bg-white dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={article.id}>
+                                    <div className="relative bg-slate-200 dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={article.id}>
                                         {/* Featured Image */}
                                         <Link to={`/blog/${articleSlug}`} className="relative w-full aspect-[5/3] overflow-hidden block group">
                                             <img

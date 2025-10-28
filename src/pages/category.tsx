@@ -29,11 +29,7 @@ export default function CategoryPage(): JSX.Element {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const articlesPerPage = 9; // Show 9 articles per page (3x3 grid)
 
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     // Fetch category and articles
     useEffect(() => {
@@ -262,7 +258,7 @@ export default function CategoryPage(): JSX.Element {
                     </div>
 
                     {articles.length === 0 ? (
-                        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-lg">
+                        <div className="text-center py-12 bg-slate-200 dark:bg-slate-900 rounded-lg">
                             <p className="text-slate-400">No articles published in this category yet.</p>
                             <Link to="/blog" className="mt-4 inline-block text-amber-400 hover:text-amber-300">
                                 ← Browse all articles
@@ -278,7 +274,7 @@ export default function CategoryPage(): JSX.Element {
                                 const authorInfo = getAuthorInfo(article.author);
 
                                 return (
-                                    <div className="relative bg-white dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={article.id}>
+                                    <div className="relative bg-slate-200 dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={article.id}>
                                         {/* Featured Image */}
                                         <Link to={`/blog/${articleSlug}`} className="relative w-full aspect-[5/3] overflow-hidden block group">
                                             <img
@@ -311,7 +307,7 @@ export default function CategoryPage(): JSX.Element {
                                                     to={`/author/${authorInfo.slug || encodeURIComponent(authorInfo.name)}`}
                                                     className="flex items-center flex-shrink-0 group"
                                                 >
-                                                    <div className="h-7 w-7 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200">
+                                                    <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border border-gray-200">
                                                         <img
                                                             src={authorInfo.profilePicture}
                                                             className={`${authorInfo.profilePicture === btsLogo ? 'h-4 w-4 object-contain' : 'h-full w-full object-cover'}`}
@@ -346,7 +342,7 @@ export default function CategoryPage(): JSX.Element {
                                             <button
                                                 onClick={() => handlePageChange(currentPage - 1)}
                                                 disabled={currentPage === 1}
-                                                className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-white dark:bg-slate-900 rounded-s-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-slate-200 dark:bg-slate-900 rounded-s-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <i className="mdi mdi-chevron-left text-[20px] rtl:rotate-180 rtl:-mt-1"></i>
                                             </button>
@@ -360,7 +356,7 @@ export default function CategoryPage(): JSX.Element {
                                                     className={
                                                         currentPage === pageNumber
                                                             ? "z-10 w-9 h-9 inline-flex text-sm justify-center items-center text-white bg-amber-400 border border-amber-400"
-                                                            : "w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 hover:text-white bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400"
+                                                            : "w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 hover:text-white bg-slate-200 dark:bg-slate-900 border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400"
                                                     }
                                                     aria-current={currentPage === pageNumber ? "page" : undefined}
                                                 >
@@ -374,7 +370,7 @@ export default function CategoryPage(): JSX.Element {
                                             <button
                                                 onClick={() => handlePageChange(currentPage + 1)}
                                                 disabled={currentPage === totalPages}
-                                                className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-white dark:bg-slate-900 rounded-e-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="w-9 h-9 inline-flex text-sm justify-center items-center text-slate-400 bg-slate-200 dark:bg-slate-900 rounded-e-3xl hover:text-white border border-gray-100 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-400 hover:bg-amber-400 dark:hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <i className="mdi mdi-chevron-right text-[20px] rtl:rotate-180 rtl:-mt-1"></i>
                                             </button>
