@@ -55,7 +55,7 @@ export default function Clients() {
                     {clientData.map((item, index) => {
                         return (
                             <div className="grid grid-cols-1 gap-6 h-fit" key={index}>
-                                <div className="rounded-lg shadow dark:shadow-gray-800 p-6 border-b-4 border-amber-400 bg-white dark:bg-slate-900 h-fit">
+                                <div className="rounded-lg shadow dark:shadow-gray-800 p-6 border-b-4 border-amber-400 bg-slate-200 dark:bg-slate-900 h-fit">
                                     <div className="flex items-center pb-6 border-b border-gray-100 dark:border-gray-800">
                                         <img src={item.image} className="h-16 w-16 rounded-full shadow dark:shadow-gray-800" alt=""/>
                                         <div className="ps-4">
@@ -76,7 +76,7 @@ export default function Clients() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-lg shadow dark:shadow-gray-800 p-6 border-b-4 border-amber-400 bg-white dark:bg-slate-900 h-fit">
+                                <div className="rounded-lg shadow dark:shadow-gray-800 p-6 border-b-4 border-amber-400 bg-slate-200 dark:bg-slate-900 h-fit">
                                     <div className="flex items-center pb-6 border-b border-gray-100 dark:border-gray-800">
                                         <img src={item.image1} className="h-16 w-16 rounded-full shadow dark:shadow-gray-800" alt=""/>
                                         <div className="ps-4">

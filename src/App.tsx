@@ -19,6 +19,7 @@ import Contact from './pages/contact';
 import ArticlePreview from './pages/article-preview';
 import AuthorPage from './pages/author';
 import CategoryPage from './pages/category';
+import ExclusiveOffer from './pages/exclusive-offer';
 import AdminLogin from './pages/admin/login';
 import AdminDashboard from './pages/admin/dashboard';
 
@@ -42,6 +43,7 @@ function App() {
         <Route path='/contact' element={<Contact/>} />
         <Route path='/blog/:slug' element={<ArticlePreview/>} />
         <Route path='/author/:slug' element={<AuthorPage/>} />
+        <Route path='/exclusive-offer' element={<ExclusiveOffer/>} />
         <Route path='/category/:slug' element={<CategoryPage/>} />
 
         {/* Admin routes */}

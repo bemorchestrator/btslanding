@@ -14,7 +14,7 @@ export default function Blogs() {
                 <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 mt-6 gap-6">
                     {blogData.slice(0, 3).map((item, index) => {
                         return (
-                            <div className="relative bg-white dark:bg-slate-900 p-4 rounded-md shadow dark:shadow-gray-700" key={index}>
+                            <div className="relative bg-slate-200 dark:bg-slate-900 p-4 rounded-md shadow dark:shadow-gray-700" key={index}>
                                 <img src={item.image} className="rounded-md shadow dark:shadow-gray-700" alt=""/>
                                 <div className="pt-4">
                                     <div className="flex justify-between items-center">

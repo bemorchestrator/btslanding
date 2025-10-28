@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import bgImage from "../assets/images/bg/btshome1.jpg"
 
@@ -9,11 +8,7 @@ import Switcher from "../components/switcher";
 import NavLight from "../components/navlight";
 
 export default function Pricings(): JSX.Element {
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     return (
         <>

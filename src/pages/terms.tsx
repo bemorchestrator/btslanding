@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import bgImage from "../assets/images/bg/btshome1.jpg";
 
 import NavLight from "../components/navbar";
 import Footer from "../components/footer";
@@ -14,11 +15,7 @@ interface AccordionItem {
 }
 
 export default function Terms(): JSX.Element {
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     const [activeIndex, setActiveIndex] = useState<number>(1);
 
@@ -48,7 +45,8 @@ export default function Terms(): JSX.Element {
     return (
         <>
             <NavLight />
-            <section className="relative md:pt-44 pt-32 pb-8 bg-gradient-to-b from-amber-400/20 dark:from-amber-400/40 to-transparent">
+            <section className="relative md:py-44 py-32 bg-no-repeat bg-bottom bg-cover" style={{ backgroundImage: `url(${bgImage})` }}>
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,1))' }}></div>
                 <div className="container relative">
                     <div className="grid grid-cols-1 text-center mt-6">
                         <div>
@@ -68,7 +66,7 @@ export default function Terms(): JSX.Element {
                 <div className="container relative">
                     <div className="md:flex justify-center">
                         <div className="md:w-3/4">
-                            <div className="p-6 bg-white dark:bg-slate-900 shadow dark:shadow-gray-800 rounded-md">
+                            <div className="p-6 bg-slate-200 dark:bg-slate-900 shadow dark:shadow-gray-800 rounded-md">
                                 <h5 className="text-xl font-semibold mb-4">1. Agreement Overview</h5>
                                 <p className="text-slate-400">Welcome to Better Teaching Solutions ("BTS," "we," "us," or "our"). These Terms of Service ("Terms") govern your access and use of the Better Teaching Solutions platform and associated services, including our websites, mobile apps, APIs, and tools (collectively, the "Services"). By registering, accessing, or using any part of the Services, you agree to be bound by these Terms.</p>
                                 <p className="text-slate-400 mt-3">This is a legally binding agreement between you ("User," "you," or "your") and Better Teaching Solutions. If you are accepting on behalf of a school or institution, you represent that you have the authority to bind such entity. If you do not agree to these Terms, you may not use our Services.</p>
