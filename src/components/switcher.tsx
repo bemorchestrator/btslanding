@@ -67,7 +67,7 @@ export default function Switcher() {
 
     return (
         <>
-            <div className="fixed top-1/4 -right-2 z-3">
+            <div className="fixed top-1/4 -right-2 z-50">
                 <span className="relative inline-block rotate-90">
                     <input type="checkbox" className="checkbox opacity-0 absolute" id="chk" checked={!isDark} onChange={(event) => changeMode('mode', event)} />
                     <label className="label bg-slate-900 dark:bg-white shadow dark:shadow-gray-800 cursor-pointer rounded-full flex justify-between items-center p-1 w-14 h-8" htmlFor="chk">
@@ -77,7 +77,7 @@ export default function Switcher() {
                     </label>
                 </span>
             </div>
-            <div className="fixed top-1/3 -right-3 z-50">
+            <div className="fixed top-[40%] -right-3 z-50">
                 <Link to="" id="switchRtl">
                     <span className="py-1 px-3 relative inline-block rounded-t-md -rotate-90 bg-slate-200 dark:bg-slate-900 shadow-md dark:shadow dark:shadow-gray-800 font-semibold rtl:block ltr:hidden" onClick={(event) => changeMode('layout', event)} >LTR</span>
                     <span className="py-1 px-3 relative inline-block rounded-t-md -rotate-90 bg-slate-200 dark:bg-slate-900 shadow-md dark:shadow dark:shadow-gray-800 font-semibold ltr:block rtl:hidden" onClick={(event) => changeMode('layout', event)}>RTL</span>

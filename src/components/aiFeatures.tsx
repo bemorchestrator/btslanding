@@ -11,42 +11,42 @@ export default function AiFeatures() {
     const featureData: FeatureItem[] = [
         {
             icon: FiEdit2,
-            title: 'Lesson Plan Generator',
-            desc: 'Automatically generate complete lesson plans in minutes based on your curriculum and teaching style'
-        },
-        {
-            icon: FiAirplay,
-            title: 'PowerPoint Creator',
-            desc: 'Create engaging, visually appealing slide presentations with a single prompt - complete with graphics and key points'
-        },
-        {
-            icon: FiCreditCard,
-            title: 'Smart Assessment Builder',
-            desc: 'Generate customized quizzes, tests and assignments that align perfectly with your learning objectives'
-        },
-        {
-            icon: FiGlobe,
-            title: 'Attendance Tracking',
-            desc: 'Simplify attendance management with intelligent tracking, reports and automatic notification systems'
+            title: 'Daily Lesson Log (DLL) Generator',
+            desc: 'Generate complete weekly DLLs in seconds—fully aligned with MATATAG curriculum and ready to submit'
         },
         {
             icon: FiLayout,
-            title: 'Automated Grading',
-            desc: 'Save hours with AI-powered grading that provides consistent evaluation and personalized feedback'
+            title: 'SF1-SF10 Forms Automation',
+            desc: 'Auto-fill all DepEd school forms with your class data. No more manual entry—just download and print'
+        },
+        {
+            icon: FiGlobe,
+            title: 'Weekly Lesson Plan Builder',
+            desc: 'Create lesson plans instantly with learning competencies, objectives, and assessments included'
+        },
+        {
+            icon: FiCreditCard,
+            title: 'Assessment & Quiz Generator',
+            desc: 'Generate quizzes, tests, and performance tasks aligned with your lesson plans—complete with answer keys'
+        },
+        {
+            icon: FiAirplay,
+            title: 'Class Record Management',
+            desc: 'Digital gradebook with automatic computation following K-12 grading system (WW, PT, QA)'
         },
         {
             icon: FiLifeBuoy,
-            title: 'Student Profiling',
-            desc: 'Track student progress, identify learning patterns, and receive insights to support individualized learning'
+            title: 'Attendance & Reports',
+            desc: 'Track daily attendance and generate SF2 reports instantly—mark all students present with one click'
         },
     ];
 
     return (
         <>
-            <div className="container relative md:mt-24 mt-16">
-                <div className="grid grid-cols-1 pb-6 text-center">
-                    <h3 className="mb-4 md:text-3xl md:leading-normal text-2xl leading-normal font-semibold text-slate-900 dark:text-white">AI Tools for Teachers</h3>
-                    <p className="text-slate-700 dark:text-slate-400 max-w-xl mx-auto">Transform your teaching experience with powerful AI tools designed specifically for educators</p>
+            <div className="container relative md:mt-24 mt-16 px-6 md:px-4">
+                <div className="grid grid-cols-1 pb-6 text-center px-4 md:px-0">
+                    <h3 className="mb-4 text-xl md:text-section-title leading-tight md:leading-normal font-semibold text-text-primary dark:text-white">All Your Teaching Tools in One Place</h3>
+                    <p className="text-small md:text-body text-text-secondary dark:text-slate-300 max-w-xl mx-auto">Generate DLLs, lesson plans, SF1-SF10 forms, and class records—ready to submit instantly</p>
                 </div>
 
                 <div className="grid md:grid-cols-3 grid-cols-1 mt-6 gap-6">
@@ -58,8 +58,8 @@ export default function AiFeatures() {
                                     <Icon className="w-5 h-5"/>
                                 </div>
                                 <div className="flex-1 ms-4">
-                                    <h4 className="mb-0 text-lg font-semibold text-slate-900 dark:text-white">{item.title}</h4>
-                                    <p className="text-slate-700 dark:text-slate-400 mt-2">{item.desc}</p>
+                                    <h4 className="mb-0 text-small md:text-body font-semibold text-text-primary dark:text-white">{item.title}</h4>
+                                    <p className="text-small md:text-small text-text-secondary dark:text-slate-300 mt-2">{item.desc}</p>
                                 </div>
                             </div>
                         );
