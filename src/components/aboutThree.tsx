@@ -7,12 +7,8 @@ export default function AboutThree() {
         <>
             <div className="container relative md:mt-24 mt-16">
                 <div className="grid md:grid-cols-2 grid-cols-1 items-center gap-6">
-                    <div className="relative overflow-hidden after:content-[''] after:absolute after:inset-0 after:mx-auto after:w-72 after:h-72 after:bg-gradient-to-tl after:to-amber-400 after:from-fuchsia-600 after:blur-[80px] after:rounded-full p-6 bg-slate-50 dark:bg-slate-900 rounded-md shadow dark:shadow-slate-800">
-                        <div className="relative overflow-hidden rounded-lg shadow-md dark:shadow-gray-800 z-1">
-                            <div className="relative">
-                                <img src="/screenshot_4.png" alt="Teaching tools screenshot" className="w-3/4 max-w-md rounded-lg mx-auto" />
-                            </div>
-                        </div>
+                    <div>
+                        <img src="/screenshot_4.png" alt="Teaching tools screenshot" className="rounded-lg" />
                     </div>
 
                     <div className="">

@@ -8,9 +8,7 @@ export default function AboutTwo() {
             <div className="container relative md:mt-24 mt-16">
                 <div className="grid md:grid-cols-2 grid-cols-1 items-center gap-6">
                     <div className="relative order-1 md:order-2">
-                        <div className="relative overflow-hidden rounded-lg border border-amber-400/5 bg-gradient-to-tl to-amber-400/30  from-fuchsia-600/30 dark:to-amber-400/50 dark:from-fuchsia-600/50 pe-6 pt-6 lg:ms-8">
-                            <img src="/sf2.png" className="ltr:rounded-tr-lg rtl:rounded-tl-lg" alt=""/>
-                        </div>
+                        <img src="/sf2.png" alt="" className="rounded-lg"/>
                     </div>
 
                     <div className="order-2 md:order-1">

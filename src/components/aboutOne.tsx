@@ -7,8 +7,8 @@ export default function AboutOne() {
         <>
             <div className="container relative md:mt-24 mt-16">
                 <div className="grid md:grid-cols-2 grid-cols-1 items-center gap-6">
-                    <div className="relative overflow-hidden rounded-lg border border-amber-400/5 bg-gradient-to-tl to-amber-400/30  from-fuchsia-600/30 dark:to-amber-400/50 dark:from-fuchsia-600/50 ps-6 pt-6 lg:me-8">
-                        <img src="/Screenshot_5.png" className="ltr:rounded-tl-lg rtl:rounded-tr-lg" alt=""/>
+                    <div>
+                        <img src="/Screenshot_5.png" alt="" className="rounded-lg"/>
                     </div>
 
                     <div className="">
