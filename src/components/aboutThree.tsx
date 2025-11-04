@@ -8,7 +8,7 @@ export default function AboutThree() {
             <div className="container relative md:mt-24 mt-16">
                 <div className="grid md:grid-cols-2 grid-cols-1 items-center gap-6">
                     <div>
-                        <img src="/screenshot_4.png" alt="Teaching tools screenshot" className="rounded-lg" />
+                        <img src="/Screenshot_4.png" alt="Teaching tools screenshot" className="rounded-lg" />
                     </div>
 
                     <div className="">
