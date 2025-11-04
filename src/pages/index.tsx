@@ -100,12 +100,12 @@ export default function Index(): JSX.Element {
                                         <FiGift className="text-amber-600 dark:text-amber-400 h-5 w-5" />
                                         <span className="text-amber-700 dark:text-amber-400 font-semibold text-sm">First-Time Offer: 7-Day Premium Trial for ₱99</span>
                                     </div>
-                                    <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
+                                    <div className="flex flex-col sm:flex-row gap-3">
                                         <a
                                             href="https://campaign.betterteachingsolutions.com/"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="w-full sm:w-auto py-3 px-6 inline-flex items-center justify-center gap-2 font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-amber-400 hover:bg-amber-500 border-amber-400 hover:border-amber-500 text-white rounded-md shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+                                            className="py-3 px-6 inline-flex items-center justify-center font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-amber-400 hover:bg-amber-500 border-amber-400 hover:border-amber-500 text-white rounded-md shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
                                         >
                                             Get Started for ₱99
                                         </a>
@@ -113,7 +113,7 @@ export default function Index(): JSX.Element {
                                             href="https://campaign.betterteachingsolutions.com/#pricing"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="w-full sm:w-auto py-3 px-6 inline-flex items-center justify-center gap-2 font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-slate-200 hover:bg-slate-300 border-slate-300 hover:border-slate-400 text-slate-900 dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/20 dark:hover:border-white/30 dark:text-white rounded-md backdrop-blur-sm"
+                                            className="py-3 px-6 inline-flex items-center justify-center gap-2 font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-slate-200 hover:bg-slate-300 border-slate-300 hover:border-slate-400 text-slate-900 dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/20 dark:hover:border-white/30 dark:text-white rounded-md backdrop-blur-sm"
                                         >
                                             View Pricing
                                             <FiArrowRight className="h-4 w-4" />
