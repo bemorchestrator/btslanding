@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Helmet } from "react-helmet";
 
 import Navbar from "../components/navbar";
@@ -9,6 +8,7 @@ import AboutTwo from "../components/aboutTwo";
 import Pricing from "../components/pricing";
 import Footer from "../components/footer";
 import Switcher from "../components/switcher";
+import { FiGift, FiArrowRight } from "../assets/icons/vander";
 
 interface WorkItem {
     icon: string;
@@ -17,11 +17,7 @@ interface WorkItem {
 }
 
 export default function Index(): JSX.Element {
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     const workData: WorkItem[] = [
         {
@@ -91,22 +87,38 @@ export default function Index(): JSX.Element {
             </Helmet>
 
             <Navbar />
-            <section className="relative table w-full lg:py-40 md:py-36 pt-36 pb-24 overflow-hidden bg-white dark:bg-slate-900">
+            <section className="relative table w-full lg:py-40 md:py-36 pt-36 pb-24 overflow-hidden bg-slate-50 dark:bg-slate-900">
                 <div className="container relative z-1">
                     <div className="relative grid lg:grid-cols-12 grid-cols-1 items-center mt-10 gap-[30px]">
                         <div className="lg:col-span-7">
-                            <div className="lg:me-6 lg:text-start text-center">
-                                <h1 className="font-bold lg:leading-normal leading-normal text-4xl lg:text-6xl mb-5">Teach More <br /> Stress Less.</h1>
-                                <p className="text-lg max-w-xl lg:ms-0 mx-auto">Stop wasting hours on lesson plans and paperwork. Our tools help you plan faster, grade smarter, and focus more on real teaching</p>
+                            <div className="lg:me-6 text-center lg:text-start">
+                                <h1 className="font-bold lg:leading-normal leading-normal text-4xl lg:text-6xl mb-5 text-slate-900 dark:text-white">Teach More <br /> Stress Less.</h1>
+                                <p className="text-lg max-w-xl lg:max-w-none text-slate-700 dark:text-slate-400">Stop wasting hours on lesson plans and paperwork. Our tools help you plan faster, grade smarter, and focus more on real teaching</p>
 
-                                <div className="subcribe-form mt-6 mb-3">
-                                    <form className="relative max-w-md mx-auto lg:ms-0" action="https://app.betterteachingsolutions.com/register" method="get">
-                                        <div className="relative">
-                                            <i className="mdi mdi-account-plus-outline text-xl absolute top-3 start-5"></i>
-                                            <input type="text" id="register" name="register" className="py-4 pe-40 ps-12 w-full h-[50px] outline-none text-slate-900 dark:text-white rounded-md bg-white/60 dark:bg-slate-900/60 shadow dark:shadow-gray-800" placeholder="No Credit Card Needed" />
-                                        </div>
-                                        <button type="submit" className="py-2 px-5 inline-block font-semibold tracking-wide align-middle duration-500 text-base text-center absolute top-[2px] end-[3px] h-[46px] bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white rounded-md">Join Now</button>
-                                    </form>
+                                <div className="mt-6 mb-3">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400/10 border border-amber-400/30 rounded-full mb-4">
+                                        <FiGift className="text-amber-600 dark:text-amber-400 h-5 w-5" />
+                                        <span className="text-amber-700 dark:text-amber-400 font-semibold text-sm">First-Time Offer: 7-Day Premium Trial for ₱99</span>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <a
+                                            href="https://campaign.betterteachingsolutions.com/"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="py-3 px-6 inline-flex items-center justify-center font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-amber-400 hover:bg-amber-500 border-amber-400 hover:border-amber-500 text-white rounded-md shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+                                        >
+                                            Get Started for ₱99
+                                        </a>
+                                        <a
+                                            href="https://campaign.betterteachingsolutions.com/#pricing"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="py-3 px-6 inline-flex items-center justify-center gap-2 font-semibold tracking-wide border align-middle duration-500 text-base text-center bg-slate-200 hover:bg-slate-300 border-slate-300 hover:border-slate-400 text-slate-900 dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/20 dark:hover:border-white/30 dark:text-white rounded-md backdrop-blur-sm"
+                                        >
+                                            View Pricing
+                                            <FiArrowRight className="h-4 w-4" />
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -30,7 +30,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
     <div className="bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 flex items-start justify-between text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        className="w-full px-6 py-4 flex items-start justify-between text-left hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
       >
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white pr-4 flex-1">
           {question}
@@ -65,9 +65,7 @@ export default function ArticlePreview(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.documentElement.setAttribute('dir', 'ltr');
-    document.documentElement.classList.add('dark');
-    document.documentElement.classList.remove('light');
+    // Dark mode is now handled globally by StyleManager
 
     const fetchData = async (articleSlug: string) => {
       try {
@@ -365,7 +363,7 @@ export default function ArticlePreview(): JSX.Element {
                   const authorInfo = getAuthorInfo(article.author);
                   return (
                     <>
-                      <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-gray-200 mr-4">
+                      <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-2 border-gray-200 mr-4">
                         <img
                           src={authorInfo.profilePicture}
                           className={`${authorInfo.profilePicture === btsLogo ? 'h-6 w-6 object-contain' : 'h-full w-full object-cover'}`}
@@ -555,7 +553,7 @@ export default function ArticlePreview(): JSX.Element {
 
       {/* FAQ Section - Collapsible Accordion */}
       {article.faqs && article.faqs.length > 0 && (
-        <section className="relative py-16 bg-white dark:bg-slate-900">
+        <section className="relative py-16 bg-slate-200 dark:bg-slate-900">
           <div className="container relative max-w-4xl">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-8">
               Frequently Asked Questions
@@ -577,7 +575,7 @@ export default function ArticlePreview(): JSX.Element {
             const author = authors.find(a => a.name === article.author);
 
             return (
-              <div className="bg-white dark:bg-slate-900 rounded-lg shadow dark:shadow-gray-700 p-8 flex flex-col md:flex-row gap-6 items-start border border-slate-200 dark:border-slate-700">
+              <div className="bg-slate-200 dark:bg-slate-900 rounded-lg shadow dark:shadow-gray-700 p-8 flex flex-col md:flex-row gap-6 items-start border border-slate-200 dark:border-slate-700">
                 {/* Author Profile Picture */}
                 <div className="flex-shrink-0">
                   <img
@@ -710,7 +708,7 @@ export default function ArticlePreview(): JSX.Element {
                 const authorInfo = getAuthorInfo(relatedArticle.author);
 
                 return (
-                  <div className="relative bg-white dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={relatedArticle.id}>
+                  <div className="relative bg-slate-200 dark:bg-slate-900 rounded-md shadow dark:shadow-gray-700 overflow-hidden flex flex-col h-full" key={relatedArticle.id}>
                     {/* Featured Image */}
                     <Link to={`/blog/${articleSlug}`} className="relative w-full aspect-[5/3] overflow-hidden block group">
                       <img
@@ -753,7 +751,7 @@ export default function ArticlePreview(): JSX.Element {
                           to={`/author/${authorInfo.slug || encodeURIComponent(authorInfo.name)}`}
                           className="flex items-center flex-shrink-0 group"
                         >
-                          <div className="h-7 w-7 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200">
+                          <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border border-gray-200">
                             <img
                               src={authorInfo.profilePicture}
                               className={`${authorInfo.profilePicture === btsLogo ? 'h-4 w-4 object-contain' : 'h-full w-full object-cover'}`}

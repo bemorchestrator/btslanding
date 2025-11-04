@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import ArticlesDropdown from "./ArticlesDropdown";
 
 interface NavbarProps {
   className?: string;
@@ -144,55 +143,33 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
 
         <ul className="buy-button list-none mb-0">
           <li className="inline mb-0">
-            <a href="https://app.betterteachingsolutions.com" target="_blank" rel="noopener noreferrer">
-              <span className="py-[6px] px-4 md:inline hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400/5 hover:bg-amber-400 border border-amber-400/10 hover:border-amber-400 text-amber-400 hover:text-white font-semibold">
+            <a href="https://application.betterteachingsolutions.com/" target="_blank" rel="noopener noreferrer">
+              <span className="py-[6px] px-4 md:inline hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400/5 hover:bg-amber-400 border border-amber-400/10 hover:border-amber-400 text-amber-700 dark:text-amber-400 hover:text-white font-semibold">
                 Login
               </span>
-              <span className="py-[6px] px-4 hidden md:hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white font-semibold">
+              <span className="py-[6px] px-4 inline-flex md:hidden items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white font-semibold">
                 Login
               </span>
             </a>
           </li>
-      
+
           <li className="md:inline hidden ps-1 mb-0">
-            <Link 
-              to="/signup" 
-              target="_blank" 
+            <a
+              href="https://application.betterteachingsolutions.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="py-[6px] px-4 inline-block items-center justify-center tracking-wider align-middle duration-500 text-sm text-center rounded bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white font-semibold"
             >
-              Signup
-            </Link>
+              Sign Up
+            </a>
           </li>
         </ul>
 
         <div id="navigation" className={`${toggleMenu ? 'block' : ''}`}>
           <ul className="navigation-menu">
             <li><Link to="/" className="sub-menu-item">Home</Link></li>
-            <li><Link to="/aboutus" className="sub-menu-item">About Us</Link></li>
             <li><Link to="/pricing" className="sub-menu-item">Pricing</Link></li>
-
-            <li className="has-submenu parent-parent-menu-item">
-              <Link to="#">Pages</Link>
-              <span className="menu-arrow"></span>
-              <ul className="submenu">
-                <li><Link to="/services" className="sub-menu-item">Services</Link></li>
-
-                <li className="has-submenu parent-menu-item">
-                  <Link to="/blog">Articles</Link>
-                  <span className="submenu-arrow"></span>
-                  <ArticlesDropdown />
-                </li>
-
-                <li className="has-submenu parent-menu-item">
-                  <Link to="#">Utility</Link>
-                  <span className="submenu-arrow"></span>
-                  <ul className="submenu">
-                    <li><Link to="/terms" className="sub-menu-item">Terms of Services</Link></li>
-                    <li><Link to="/privacy" className="sub-menu-item">Privacy Policy</Link></li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
+            <li><Link to="/blog" className="sub-menu-item">Blog</Link></li>
 
             <li><Link to="/contact" className="sub-menu-item">Contact</Link></li>
           </ul>

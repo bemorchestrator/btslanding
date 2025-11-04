@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import bgImage from "../assets/images/bg/btshome1.jpg"
 
@@ -18,11 +17,7 @@ interface CaseItem {
 }
 
 export default function Services(): JSX.Element {
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     const casesData: CaseItem[] = [
         {
@@ -61,7 +56,7 @@ export default function Services(): JSX.Element {
         <>
             <NavLight />
             <section className="relative md:py-44 py-32 bg-no-repeat bg-bottom bg-cover" style={{ backgroundImage: `url(${bgImage})` }}>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-slate-900/70"></div>
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,1))' }}></div>
                 <div className="container relative">
                     <div className="grid grid-cols-1 text-center mt-6">
                         <div>
@@ -97,7 +92,7 @@ export default function Services(): JSX.Element {
                         {casesData.map((item, index) => {
                             const Icon = item.icon;
                             return (
-                                <div className="p-6 rounded-md shadow dark:shadow-gray-800 group bg-white dark:bg-slate-900 hover:bg-amber-400/5 dark:hover:bg-amber-400/5 duration-500" key={index}>
+                                <div className="p-6 rounded-md shadow dark:shadow-gray-800 group bg-slate-200 dark:bg-slate-900 hover:bg-amber-400/5 dark:hover:bg-amber-400/5 duration-500" key={index}>
                                     <div className="relative overflow-hidden text-transparent -m-3">
                                         <FiHexagon className="h-24 w-24 fill-amber-400/10 group-hover:fill-amber-400/20 duration-500" />
                                         <div className="absolute top-2/4 -translate-y-2/4 start-9 text-amber-400 rounded-xl text-2xl flex align-middle justify-center items-center">

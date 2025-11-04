@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import bgImage from "../assets/images/bg/btshome1.jpg"
 
@@ -22,11 +22,7 @@ interface AccordionItem {
 }
 
 export default function Helpcenter(): JSX.Element {
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     const [activeIndex, setActiveIndex] = useState<number>(1);
 
@@ -84,7 +80,7 @@ export default function Helpcenter(): JSX.Element {
 
                         <div className="text-center subcribe-form mt-4 pt-2">
                             <form className="relative mx-auto max-w-xl">
-                                <input type="text" id="help" name="name" className="py-4 pe-40 ps-6 w-full h-[50px] outline-none text-slate-900 dark:text-white rounded-md bg-white opacity-70 dark:bg-slate-900 border border-gray-100 dark:border-gray-700" placeholder="Search your questions or topic..." />
+                                <input type="text" id="help" name="name" className="py-4 pe-40 ps-6 w-full h-[50px] outline-none text-slate-900 dark:text-white rounded-md bg-slate-200 opacity-70 dark:bg-slate-900 border border-gray-100 dark:border-gray-700" placeholder="Search your questions or topic..." />
                                 <button type="submit" className="py-2 px-5 inline-block font-semibold tracking-wide align-middle duration-500 text-base text-center absolute top-[2px] end-[3px] h-[46px] bg-amber-400 hover:bg-amber-500 border border-amber-400 hover:border-amber-500 text-white rounded-md">Search</button>
                             </form>
                         </div>

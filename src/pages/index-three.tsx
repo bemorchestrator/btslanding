@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import Navbar from "../components/navbar";
@@ -15,11 +14,7 @@ import Footer from "../components/footer";
 import Switcher from "../components/switcher";
 
 export default function IndexThree(): JSX.Element {
-    useEffect(() => {
-        document.documentElement.setAttribute("dir", "ltr");
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-    }, []);
+    // Dark mode is now handled globally by StyleManager
 
     return (
         <>
