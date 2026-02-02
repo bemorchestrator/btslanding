@@ -18,7 +18,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     e.preventDefault();
     
     // Simple mock authentication - in production, this would call an API
-    if (email === 'REDACTED_EMAIL' && password === 'REDACTED_PASSWORD') {
+    if (email === process.env.REACT_APP_ADMIN_EMAIL && password === process.env.REACT_APP_ADMIN_PASSWORD) {
       setError('');
       onLogin();
     } else {
@@ -95,10 +95,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <p className="text-gray-400 text-sm text-center mb-2">Demo Credentials:</p>
             <div className="bg-[#2a2a2a] rounded p-3 space-y-1">
               <p className="text-gray-300 text-sm">
-                <span className="text-gray-500">Email:</span> REDACTED_EMAIL
-              </p>
-              <p className="text-gray-300 text-sm">
-                <span className="text-gray-500">Password:</span> REDACTED_PASSWORD
+                Use your admin credentials to log in.
               </p>
             </div>
           </div>

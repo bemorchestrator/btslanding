@@ -119,10 +119,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <p className="text-gray-400 text-sm text-center mb-2">Demo Credentials:</p>
             <div className="bg-[#2a2a2a] rounded p-3 space-y-1">
               <p className="text-gray-300 text-sm">
-                <span className="text-gray-500">Username:</span> admin
-              </p>
-              <p className="text-gray-300 text-sm">
-                <span className="text-gray-500">Password:</span> REDACTED_PASSWORD
+                Use your admin credentials to log in.
               </p>
             </div>
           </div>

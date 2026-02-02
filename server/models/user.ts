@@ -6,10 +6,8 @@ export interface User {
   role: 'admin';
 }
 
-// Default admin user with hashed password
-// Username: admin
-// Password: REDACTED_PASSWORD
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync('REDACTED_PASSWORD', 10);
+// Default admin user with hashed password from environment
+const ADMIN_PASSWORD_HASH = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'changeme', 10);
 
 export const defaultAdmin: User = {
   username: 'admin',
